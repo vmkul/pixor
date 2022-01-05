@@ -20,21 +20,21 @@ protected:
 
 public:
   PngChunk(ChunkType type, int length, const char *data);
-
-  ChunkType get_type() {return type;}
+  int get_length() const {return length;};
+  ChunkType get_type() const {return type;}
 };
 
 class PngHeader : public PngChunk {
 public:
   PngHeader(int length, const char *data);
 
-  unsigned int get_width();
-  unsigned int get_height();
-  unsigned char get_bit_depth();
-  unsigned char get_colour_type();
-  unsigned char get_compression_method();
-  unsigned char get_filter_method();
-  unsigned char get_interlace_method();
+  unsigned int get_width() const;
+  unsigned int get_height() const;
+  unsigned char get_bit_depth() const;
+  unsigned char get_colour_type() const;
+  unsigned char get_compression_method() const;
+  unsigned char get_filter_method() const;
+  unsigned char get_interlace_method() const;
 };
 
 class PngPalette : public PngChunk {
@@ -45,6 +45,7 @@ public:
 class PngData : public PngChunk {
 public:
   PngData(int length, const char *data);
+  const char *get_data() const {return data;}
 };
 
 class PngEnd : public PngChunk {
