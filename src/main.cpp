@@ -1,8 +1,10 @@
+#include <gtkmm-4.0/gtkmm/filechoosernative.h>
 #include <gtkmm.h>
 #include <stdio.h>
 #include <fstream>
 #include "main_window.h"
 #include "png.h"
+#include "image_area.h"
 
 int main(int argc, char* argv[])
 {
@@ -18,12 +20,15 @@ int main(int argc, char* argv[])
     return 1;
   }
 
-  decode_png(file);
-  file.close();
+  auto image = decode_png(file);
+  image->print_image_info();
 
-  return 0;
+  file.close();
 
   auto app = Gtk::Application::create("org.gtkmm.examples.base");
 
-  return app->make_window_and_run<MyWindow>(argc, argv);
+  char *str = 0;
+  argv[1] = str;
+
+  return app->make_window_and_run<MainWindow>(argc, argv, image);
 }
