@@ -1,8 +1,12 @@
 #pragma once
 #include <gtkmm-4.0/gtkmm.h>
+#include "image_area.h"
 
-class MyWindow : public Gtk::Window
+class MainWindow : public Gtk::Window
 {
 public:
-  MyWindow();
+  MainWindow(PngImage *image);
+
+protected:
+  ImageArea image_area;
 };
