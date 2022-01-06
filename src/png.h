@@ -25,6 +25,7 @@ const byte PNG_SIGNATURE[] = {137, 80, 78, 71, 13, 10, 26, 10};
 class PngImage {
   PngHeader *header;
   std::vector<PngData *> data_chunks;
+  PngPalette *palette;
 
   int get_compressed_size() const;
   int get_pixel_width() const;
@@ -32,6 +33,7 @@ class PngImage {
 
 public:
   void set_header(PngHeader *header) {this->header = header;}
+  void set_palette(PngPalette *palette) {this->palette = palette;}
   void add_data_chunk(PngData *chunk) {data_chunks.push_back(chunk);}
   byte *get_image_data() const;
   int get_width() const {return header->get_width();};

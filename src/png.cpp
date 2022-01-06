@@ -39,13 +39,18 @@ PngImage *decode_png(std::istream& data_stream)
 
     auto chunk = create_png_chunk((byte *) chunk_type, *chunk_len, chunk_data);
 
-    if (chunk && chunk->get_type() == IHDR) {
-      auto header = (PngHeader *) chunk;
-      image->set_header(header);
-    }
+    if (chunk) {
+      if (chunk->get_type() == IHDR) {
+        image->set_header((PngHeader *) chunk);
+      }
 
-    if (chunk && chunk->get_type() == IDAT) {
-      image->add_data_chunk((PngData *) chunk);
+      if (chunk->get_type() == IDAT) {
+        image->add_data_chunk((PngData *) chunk);
+      }
+
+      if (chunk->get_type() == PLTE) {
+        image->set_palette((PngPalette *) chunk);
+      }
     }
   }
 
@@ -296,8 +301,13 @@ byte *PngImage::get_image_data() const
         // TODO: Implement greyscale alpha
         return NULL;
       } else if (image_type == PNG_TYPE_INDEXED_COLOUR) {
-        // TODO: Implement indexed colour
-        return NULL;
+        RGBA pixel = palette->get_pixel_value(value);
+        byte *channels = (byte *) &pixel;
+        int dest_index = (i * width + j) * 3;
+
+        decoded[dest_index] = channels[0];
+        decoded[dest_index + 1] = channels[1];
+        decoded[dest_index + 2] = channels[2];
       } else {
         return NULL;
       }
