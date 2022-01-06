@@ -41,6 +41,7 @@ public:
 class PngPalette : public PngChunk {
 public:
   PngPalette(int length, const char *data);
+  RGBA get_pixel_value(int index);
 };
 
 class PngData : public PngChunk {

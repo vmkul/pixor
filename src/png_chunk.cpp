@@ -1,6 +1,7 @@
 #include <iostream>
 #include <stdio.h>
 #include <string>
+#include <cstring>
 #include "png_chunk.h"
 #include "debug.h"
 #include "pixor.h"
@@ -42,6 +43,16 @@ byte PngHeader::get_interlace_method() const {return ((byte *) data)[12];}
 
 
 PngPalette::PngPalette(int length, const char *data) : PngChunk(PLTE, length, data) {}
+
+RGBA PngPalette::get_pixel_value(int index)
+{
+  byte val[4];
+  memcpy(val, data + index * 3, 3);
+  RGBA *res = (RGBA *) val;
+
+  return *res;
+}
+
 
 PngData::PngData(int length, const char *data) : PngChunk(IDAT, length, data) {}
 
