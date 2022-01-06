@@ -132,7 +132,7 @@ png_filter_func get_recon_filter(FilterType filter_type)
       res = &paeth_recon_filter;
       break;
     default:
-      dbgln("Unknown filter type %d\n", filter_type);
+      dbgln("Unknown filter type %d", filter_type);
       res = &none_recon_filter;
   }
 
