@@ -1,5 +1,6 @@
 #include <iostream>
 #include <stdio.h>
+#include <string>
 #include "png_chunk.h"
 #include "debug.h"
 #include "pixor.h"
@@ -75,7 +76,7 @@ PngChunk *create_png_chunk(const byte signature[4], int length, const char *data
     dbgln("End chunk found");
     return new PngEnd(length, data);
   } else {
-    dbgln("Found unknown chunk type");
+    dbgln("Found unknown chunk type: %s", std::string((char *) signature, 4).c_str());
     return nullptr;
   }
 }
