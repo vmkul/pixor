@@ -1,9 +1,10 @@
 #pragma once
+#include "pixor.h"
 
-const unsigned char PNG_HEADER_CHUNK_TYPE[] = {73, 72, 68, 82};
-const unsigned char PNG_PALETTE_CHUNK_TYPE[] = {80, 76, 84, 69};
-const unsigned char PNG_DATA_CHUNK_TYPE[] = {73, 68, 65, 84};
-const unsigned char PNG_END_CHUNK_TYPE[] = {73, 69, 78, 68};
+const byte PNG_HEADER_CHUNK_TYPE[] = {73, 72, 68, 82};
+const byte PNG_PALETTE_CHUNK_TYPE[] = {80, 76, 84, 69};
+const byte PNG_DATA_CHUNK_TYPE[] = {73, 68, 65, 84};
+const byte PNG_END_CHUNK_TYPE[] = {73, 69, 78, 68};
 
 enum ChunkType {
   IHDR,
@@ -30,11 +31,11 @@ public:
 
   unsigned int get_width() const;
   unsigned int get_height() const;
-  unsigned char get_bit_depth() const;
-  unsigned char get_colour_type() const;
-  unsigned char get_compression_method() const;
-  unsigned char get_filter_method() const;
-  unsigned char get_interlace_method() const;
+  byte get_bit_depth() const;
+  byte get_colour_type() const;
+  byte get_compression_method() const;
+  byte get_filter_method() const;
+  byte get_interlace_method() const;
 };
 
 class PngPalette : public PngChunk {
@@ -53,4 +54,4 @@ public:
   PngEnd(int length, const char *data);
 };
 
-PngChunk *create_png_chunk(const unsigned char signature[4], int length, const char *data);
+PngChunk *create_png_chunk(const byte signature[4], int length, const char *data);

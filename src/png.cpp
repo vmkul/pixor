@@ -23,7 +23,7 @@ PngImage *decode_png(std::istream& data_stream)
   data_stream.read(signature, 8);
 
   for (int i = 0; i < 8; i++) {
-    if ((unsigned char) signature[i] != PNG_SIGNATURE[i]) {
+    if ((byte) signature[i] != PNG_SIGNATURE[i]) {
       throw std::invalid_argument("PNG signature check failed");
     }
   }
@@ -37,7 +37,7 @@ PngImage *decode_png(std::istream& data_stream)
     data_stream.read(chunk_data, *chunk_len);
     data_stream.read(crc, 4);
 
-    auto chunk = create_png_chunk((unsigned char *) chunk_type, *chunk_len, chunk_data);
+    auto chunk = create_png_chunk((byte *) chunk_type, *chunk_len, chunk_data);
 
     if (chunk && chunk->get_type() == IHDR) {
       auto header = (PngHeader *) chunk;

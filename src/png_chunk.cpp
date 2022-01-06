@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include "png_chunk.h"
 #include "debug.h"
+#include "pixor.h"
 
 PngChunk::PngChunk(ChunkType type, int length, const char *data) :
   type(type),
@@ -28,15 +29,15 @@ unsigned int PngHeader::get_height() const
   return __builtin_bswap32(uints[1]);
 }
 
-unsigned char PngHeader::get_bit_depth() const {return ((unsigned char *) data)[8];}
+byte PngHeader::get_bit_depth() const {return ((byte *) data)[8];}
 
-unsigned char PngHeader::get_colour_type() const {return ((unsigned char *) data)[9];}
+byte PngHeader::get_colour_type() const {return ((byte *) data)[9];}
 
-unsigned char PngHeader::get_compression_method() const {return ((unsigned char *) data)[10];}
+byte PngHeader::get_compression_method() const {return ((byte *) data)[10];}
 
-unsigned char PngHeader::get_filter_method() const {return ((unsigned char *) data)[11];}
+byte PngHeader::get_filter_method() const {return ((byte *) data)[11];}
 
-unsigned char PngHeader::get_interlace_method() const {return ((unsigned char *) data)[12];}
+byte PngHeader::get_interlace_method() const {return ((byte *) data)[12];}
 
 
 PngPalette::PngPalette(int length, const char *data) : PngChunk(PLTE, length, data) {}
@@ -46,7 +47,7 @@ PngData::PngData(int length, const char *data) : PngChunk(IDAT, length, data) {}
 PngEnd::PngEnd(int length, const char *data) : PngChunk(IEND, length, data) {}
 
 
-bool equal_signatures(const unsigned char sig1[4], const unsigned char sig2[4])
+bool equal_signatures(const byte sig1[4], const byte sig2[4])
 {
   for (int i = 0; i < 4; i++) {
     if (sig1[i] != sig2[i]) {
@@ -59,7 +60,7 @@ bool equal_signatures(const unsigned char sig1[4], const unsigned char sig2[4])
 }
 
 
-PngChunk *create_png_chunk(const unsigned char signature[4], int length, const char *data)
+PngChunk *create_png_chunk(const byte signature[4], int length, const char *data)
 {
   if (equal_signatures(signature, PNG_HEADER_CHUNK_TYPE)) {
     dbgln("Header chunk found");
