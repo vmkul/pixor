@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <cstring>
 #include <zlib.h>
+#include <cassert>
 #include "png.h"
 #include "png_chunk.h"
 #include "pixor.h"
@@ -298,8 +299,15 @@ byte *PngImage::get_image_data() const
         int dest_index = i * width * 4 + j;
         decoded[dest_index] = value;
       } else if (image_type == PNG_TYPE_GREYSCALE_ALPHA) {
-        // TODO: Implement greyscale alpha
-        return NULL;
+        if (j % 2 == 0) {
+          int dest_index = (i * width + j / 2) * 4;
+          decoded[dest_index] = value;
+          decoded[dest_index + 1] = value;
+          decoded[dest_index + 2] = value;
+        } else {
+          int dest_index = (i * width + (j - 1) / 2) * 4;
+          decoded[dest_index + 3] = value;
+        }
       } else if (image_type == PNG_TYPE_INDEXED_COLOUR) {
         RGBA pixel = palette->get_pixel_value(value);
         byte *channels = (byte *) &pixel;
