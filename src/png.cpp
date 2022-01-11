@@ -9,14 +9,14 @@
 #include "png_chunk.h"
 #include "pixor.h"
 #include "debug.h"
+#include "crc.h"
 
 PngImage *decode_png(std::istream& data_stream)
 {
   char signature[8];
-  unsigned int chunk_len[1];
-  char chunk_type[4];
-  char *chunk_data;
-  char crc[4];
+  unsigned int chunk_len;
+  char *chunk_type_with_data;
+  unsigned long chunk_crc;
   auto image = new PngImage();
 
   dbgln("Decoding PNG...");
@@ -30,15 +30,21 @@ PngImage *decode_png(std::istream& data_stream)
   }
 
   while (data_stream.good()) {
-    data_stream.read((char *) chunk_len, 4);
-    *chunk_len = __builtin_bswap32(*chunk_len);
-    chunk_data = new char[*chunk_len];
+    data_stream.read((char *) &chunk_len, 4);
+    chunk_len = __builtin_bswap32(chunk_len);
+    int length_with_type = chunk_len + 4;
+    chunk_type_with_data = new char[length_with_type];
 
-    data_stream.read(chunk_type, 4);
-    data_stream.read(chunk_data, *chunk_len);
-    data_stream.read(crc, 4);
+    data_stream.read(chunk_type_with_data, length_with_type);
+    data_stream.read((char *) &chunk_crc, 4);
 
-    auto chunk = create_png_chunk((byte *) chunk_type, *chunk_len, chunk_data);
+    auto chunk = create_png_chunk((const byte *) chunk_type_with_data, chunk_len, chunk_type_with_data + 4);
+    unsigned long calculated_crc = crc((byte *) chunk_type_with_data, length_with_type);
+
+    if (calculated_crc != __builtin_bswap32(chunk_crc)) {
+      dbgln("CRC check failed");
+      return NULL;
+    }
 
     if (chunk) {
       if (chunk->get_type() == IHDR) {
@@ -51,6 +57,10 @@ PngImage *decode_png(std::istream& data_stream)
 
       if (chunk->get_type() == PLTE) {
         image->set_palette((PngPalette *) chunk);
+      }
+
+      if (chunk->get_type() == IEND) {
+        break;
       }
     }
   }
