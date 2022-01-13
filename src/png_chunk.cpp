@@ -22,13 +22,13 @@ PngHeader::PngHeader(int length, const char *data) : PngChunk(IHDR, length, data
 unsigned int PngHeader::get_width() const
 {
   auto uints = (unsigned int *) data;
-  return __builtin_bswap32(uints[0]);
+  return Pixor::byte_swap_32(uints[0]);
 }
 
 unsigned int PngHeader::get_height() const
 {
   auto uints = (unsigned int *) data;
-  return __builtin_bswap32(uints[1]);
+  return Pixor::byte_swap_32(uints[1]);
 }
 
 byte PngHeader::get_bit_depth() const {return ((byte *) data)[8];}

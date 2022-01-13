@@ -16,7 +16,7 @@ PngImage *decode_png(std::istream& data_stream)
   char signature[8];
   unsigned int chunk_len;
   char *chunk_type_with_data;
-  unsigned long chunk_crc;
+  unsigned int chunk_crc;
   auto image = new PngImage();
 
   dbgln("Decoding PNG...");
@@ -31,7 +31,7 @@ PngImage *decode_png(std::istream& data_stream)
 
   while (data_stream.good()) {
     data_stream.read((char *) &chunk_len, 4);
-    chunk_len = __builtin_bswap32(chunk_len);
+    chunk_len = Pixor::byte_swap_32(chunk_len);
     int length_with_type = chunk_len + 4;
     chunk_type_with_data = new char[length_with_type];
 
@@ -41,7 +41,7 @@ PngImage *decode_png(std::istream& data_stream)
     auto chunk = create_png_chunk((const byte *) chunk_type_with_data, chunk_len, chunk_type_with_data + 4);
     unsigned long calculated_crc = crc((byte *) chunk_type_with_data, length_with_type);
 
-    if (calculated_crc != __builtin_bswap32(chunk_crc)) {
+    if (calculated_crc != Pixor::byte_swap_32(chunk_crc)) {
       dbgln("CRC check failed");
       return NULL;
     }
