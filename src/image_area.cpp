@@ -7,7 +7,7 @@
 #include "image_area.h"
 #include "debug.h"
 
-ImageArea::ImageArea(PngImage *image)
+ImageArea::ImageArea(Pixor::Image *image)
 {
   if (!image) {
     return;
@@ -18,7 +18,7 @@ ImageArea::ImageArea(PngImage *image)
 
   try
   {
-    m_image = Gdk::Pixbuf::create_from_data(image->get_image_data(), Gdk::Colorspace::RGB, has_alpha, 8, image->get_width(), image->get_height(), (image->get_width()) * pixel_width);
+    m_image = Gdk::Pixbuf::create_from_data(image->get_image_bitmap(), Gdk::Colorspace::RGB, has_alpha, 8, image->get_width(), image->get_height(), (image->get_width()) * pixel_width);
   }
   catch(const Gio::ResourceError& ex)
   {

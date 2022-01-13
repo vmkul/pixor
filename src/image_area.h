@@ -1,12 +1,12 @@
 #pragma once
 #include <gtkmm/drawingarea.h>
 #include <gdkmm/pixbuf.h>
-#include "png.h"
+#include "image.h"
 
 class ImageArea : public Gtk::DrawingArea
 {
 public:
-  ImageArea(PngImage *image);
+  ImageArea(Pixor::Image *image);
   virtual ~ImageArea();
 
 protected:

@@ -5,7 +5,7 @@
 class MainWindow : public Gtk::Window
 {
 public:
-  MainWindow(PngImage *image);
+  MainWindow(Pixor::Image *image);
 
 protected:
   ImageArea image_area;
