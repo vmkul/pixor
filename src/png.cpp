@@ -11,7 +11,9 @@
 #include "debug.h"
 #include "crc.h"
 
-PngImage *decode_png(std::istream& data_stream)
+using namespace Pixor;
+
+PngImage *Pixor::decode_png(std::istream& data_stream)
 {
   char signature[8];
   unsigned int chunk_len;
@@ -263,7 +265,7 @@ byte *PngImage::get_joined_chunks() const
   return joined_chunks;
 }
 
-byte *PngImage::get_image_data() const
+byte *PngImage::get_image_bitmap() const
 {
   if (data_chunks.size() == 0) {
     return NULL;

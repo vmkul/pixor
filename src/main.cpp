@@ -20,7 +20,7 @@ int main(int argc, char* argv[])
     return 1;
   }
 
-  auto image = decode_png(file);
+  auto image = Pixor::decode_png(file);
   image->print_image_info();
 
   file.close();
