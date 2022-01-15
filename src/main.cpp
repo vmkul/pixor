@@ -1,4 +1,3 @@
-#include <gtkmm-4.0/gtkmm/filechoosernative.h>
 #include <gtkmm.h>
 #include <stdio.h>
 #include <fstream>
@@ -26,9 +25,7 @@ int main(int argc, char* argv[])
   file.close();
 
   auto app = Gtk::Application::create("org.gtkmm.examples.base");
+  MainWindow window(image);
 
-  char *str = 0;
-  argv[1] = str;
-
-  return app->make_window_and_run<MainWindow>(argc, argv, image);
+  return app->run(window);
 }

@@ -1,5 +1,5 @@
 #pragma once
-#include <gtkmm-4.0/gtkmm.h>
+#include <gtkmm.h>
 #include "image_area.h"
 
 class MainWindow : public Gtk::Window

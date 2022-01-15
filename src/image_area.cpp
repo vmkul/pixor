@@ -18,7 +18,8 @@ ImageArea::ImageArea(Pixor::Image *image)
 
   try
   {
-    m_image = Gdk::Pixbuf::create_from_data(image->get_image_bitmap(), Gdk::Colorspace::RGB, has_alpha, 8, image->get_width(), image->get_height(), (image->get_width()) * pixel_width);
+    m_image = Gdk::Pixbuf::create_from_data(image->get_image_bitmap(), Gdk::Colorspace::COLORSPACE_RGB,
+      has_alpha, 8, image->get_width(), image->get_height(), (image->get_width()) * pixel_width);
   }
   catch(const Gio::ResourceError& ex)
   {
@@ -31,23 +32,22 @@ ImageArea::ImageArea(Pixor::Image *image)
 
   if (m_image)
   {
-    set_content_width(m_image->get_width());
-    set_content_height(m_image->get_height());
+    set_size_request(m_image->get_width(), m_image->get_height());
   }
-
-  set_draw_func(sigc::mem_fun(*this, &ImageArea::on_draw));
 }
 
 ImageArea::~ImageArea()
 {
 }
 
-void ImageArea::on_draw(const Cairo::RefPtr<Cairo::Context>& cr, int width, int height)
+bool ImageArea::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
 {
   if (!m_image)
-    return;
+    return false;
 
   Gdk::Cairo::set_source_pixbuf(cr, m_image,
-    (width - m_image->get_width())/2, (height - m_image->get_height())/2);
+    (get_width() - m_image->get_width()) / 2, (get_height() - m_image->get_height()) / 2);
   cr->paint();
+
+  return true;
 }
