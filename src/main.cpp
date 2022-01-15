@@ -19,7 +19,7 @@ int main(int argc, char* argv[])
     return 1;
   }
 
-  auto image = Pixor::decode_png(file);
+  auto image = std::shared_ptr<Pixor::Image>((Pixor::Image *) Pixor::decode_png(file));
   image->print_image_info();
 
   file.close();

@@ -6,57 +6,53 @@
 #include "debug.h"
 #include "pixor.h"
 
-PngChunk::PngChunk(ChunkType type, int length, const char *data) :
+PngChunk::PngChunk(ChunkType type, int length, byte *data) :
   type(type),
   length(length),
   data(data) {}
 
 
-PngHeader::PngHeader(int length, const char *data) : PngChunk(IHDR, length, data)
-{
-  if (length != 13) {
-    throw std::invalid_argument("Length of header chunk is not 13");
-  }
-}
+PngHeader::PngHeader(int length, byte *data) : PngChunk(IHDR, length, data)
+{}
 
 unsigned int PngHeader::get_width() const
 {
-  auto uints = (unsigned int *) data;
+  auto uints = (unsigned int *) data.get();
   return Pixor::byte_swap_32(uints[0]);
 }
 
 unsigned int PngHeader::get_height() const
 {
-  auto uints = (unsigned int *) data;
+  auto uints = (unsigned int *) data.get();
   return Pixor::byte_swap_32(uints[1]);
 }
 
-byte PngHeader::get_bit_depth() const {return ((byte *) data)[8];}
+byte PngHeader::get_bit_depth() const {return data[8];}
 
-byte PngHeader::get_colour_type() const {return ((byte *) data)[9];}
+byte PngHeader::get_colour_type() const {return data[9];}
 
-byte PngHeader::get_compression_method() const {return ((byte *) data)[10];}
+byte PngHeader::get_compression_method() const {return data[10];}
 
-byte PngHeader::get_filter_method() const {return ((byte *) data)[11];}
+byte PngHeader::get_filter_method() const {return data[11];}
 
-byte PngHeader::get_interlace_method() const {return ((byte *) data)[12];}
+byte PngHeader::get_interlace_method() const {return data[12];}
 
 
-PngPalette::PngPalette(int length, const char *data) : PngChunk(PLTE, length, data) {}
+PngPalette::PngPalette(int length, byte *data) : PngChunk(PLTE, length, data) {}
 
 RGBA PngPalette::get_pixel_value(int index)
 {
   byte val[4];
-  memcpy(val, data + index * 3, 3);
+  memcpy(val, data.get() + index * 3, 3);
   RGBA *res = (RGBA *) val;
 
   return *res;
 }
 
 
-PngData::PngData(int length, const char *data) : PngChunk(IDAT, length, data) {}
+PngData::PngData(int length, byte *data) : PngChunk(IDAT, length, data) {}
 
-PngEnd::PngEnd(int length, const char *data) : PngChunk(IEND, length, data) {}
+PngEnd::PngEnd(int length, byte *data) : PngChunk(IEND, length, data) {}
 
 
 bool equal_signatures(const byte sig1[4], const byte sig2[4])
@@ -72,7 +68,7 @@ bool equal_signatures(const byte sig1[4], const byte sig2[4])
 }
 
 
-PngChunk *create_png_chunk(const byte signature[4], int length, const char *data)
+PngChunk *create_png_chunk(const byte signature[4], int length, byte *data)
 {
   if (equal_signatures(signature, PNG_HEADER_CHUNK_TYPE)) {
     dbgln("Header chunk found");

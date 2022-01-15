@@ -1,6 +1,7 @@
 #pragma once
 #include <iostream>
 #include <vector>
+#include <memory>
 #include "pixor.h"
 #include "png_chunk.h"
 #include "image.h"
@@ -25,19 +26,19 @@ const byte PNG_SIGNATURE[] = {137, 80, 78, 71, 13, 10, 26, 10};
 
 namespace Pixor {
 class PngImage : public Pixor::Image {
-  PngHeader *header;
-  std::vector<PngData *> data_chunks;
-  PngPalette *palette;
+  std::shared_ptr<PngHeader> header;
+  std::vector<std::shared_ptr<PngData>> data_chunks;
+  std::shared_ptr<PngPalette> palette;
 
   int get_compressed_size() const;
   int get_pixel_width() const;
   byte *get_joined_chunks() const;
 
 public:
-  void set_header(PngHeader *header) {this->header = header;}
-  void set_palette(PngPalette *palette) {this->palette = palette;}
-  void add_data_chunk(PngData *chunk) {data_chunks.push_back(chunk);}
-  byte *get_image_bitmap() const;
+  void set_header(PngHeader *header) {this->header = std::shared_ptr<PngHeader>(header);}
+  void set_palette(PngPalette *palette) {this->palette = std::shared_ptr<PngPalette>(palette);}
+  void add_data_chunk(PngData *chunk) {data_chunks.push_back(std::shared_ptr<PngData>(chunk));}
+  std::shared_ptr<byte[]> get_image_bitmap() const;
   int get_width() const {return header->get_width();};
   int get_height() const {return header->get_height();};
   bool has_alpha() const;

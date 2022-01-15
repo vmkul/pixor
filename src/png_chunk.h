@@ -1,4 +1,5 @@
 #pragma once
+#include <memory>
 #include "pixor.h"
 
 const byte PNG_HEADER_CHUNK_TYPE[] = {73, 72, 68, 82};
@@ -17,17 +18,17 @@ class PngChunk {
 protected:
   ChunkType type;
   int length;
-  const char *data;
+  std::shared_ptr<byte[]> data;
 
 public:
-  PngChunk(ChunkType type, int length, const char *data);
+  PngChunk(ChunkType type, int length, byte *data);
   int get_length() const {return length;};
   ChunkType get_type() const {return type;}
 };
 
 class PngHeader : public PngChunk {
 public:
-  PngHeader(int length, const char *data);
+  PngHeader(int length, byte *data);
 
   unsigned int get_width() const;
   unsigned int get_height() const;
@@ -40,19 +41,19 @@ public:
 
 class PngPalette : public PngChunk {
 public:
-  PngPalette(int length, const char *data);
+  PngPalette(int length, byte *data);
   RGBA get_pixel_value(int index);
 };
 
 class PngData : public PngChunk {
 public:
-  PngData(int length, const char *data);
-  const char *get_data() const {return data;}
+  PngData(int length, byte *data);
+  byte *get_data() const {return data.get();}
 };
 
 class PngEnd : public PngChunk {
 public:
-  PngEnd(int length, const char *data);
+  PngEnd(int length, byte *data);
 };
 
-PngChunk *create_png_chunk(const byte signature[4], int length, const char *data);
+PngChunk *create_png_chunk(const byte signature[4], int length, byte *data);

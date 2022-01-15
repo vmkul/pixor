@@ -7,7 +7,7 @@
 #include "image_area.h"
 #include "debug.h"
 
-ImageArea::ImageArea(Pixor::Image *image)
+ImageArea::ImageArea(std::shared_ptr<Pixor::Image> &image)
 {
   if (!image) {
     return;
@@ -15,10 +15,11 @@ ImageArea::ImageArea(Pixor::Image *image)
 
   bool has_alpha = image->has_alpha();
   int pixel_width = has_alpha ? 4 : 3;
+  image_bitmap = image->get_image_bitmap();
 
   try
   {
-    m_image = Gdk::Pixbuf::create_from_data(image->get_image_bitmap(), Gdk::Colorspace::COLORSPACE_RGB,
+    m_image = Gdk::Pixbuf::create_from_data(image_bitmap.get(), Gdk::Colorspace::COLORSPACE_RGB,
       has_alpha, 8, image->get_width(), image->get_height(), (image->get_width()) * pixel_width);
   }
   catch(const Gio::ResourceError& ex)

@@ -17,7 +17,7 @@ PngImage *Pixor::decode_png(std::istream& data_stream)
 {
   char signature[8];
   unsigned int chunk_len;
-  char *chunk_type_with_data;
+  byte *chunk_type_with_data;
   unsigned int chunk_crc;
   auto image = new PngImage();
 
@@ -35,35 +35,37 @@ PngImage *Pixor::decode_png(std::istream& data_stream)
     data_stream.read((char *) &chunk_len, 4);
     chunk_len = Pixor::byte_swap_32(chunk_len);
     int length_with_type = chunk_len + 4;
-    chunk_type_with_data = new char[length_with_type];
+    chunk_type_with_data = new byte[length_with_type];
 
-    data_stream.read(chunk_type_with_data, length_with_type);
+    data_stream.read((char *) chunk_type_with_data, length_with_type);
     data_stream.read((char *) &chunk_crc, 4);
 
-    auto chunk = create_png_chunk((const byte *) chunk_type_with_data, chunk_len, chunk_type_with_data + 4);
-    unsigned long calculated_crc = crc((byte *) chunk_type_with_data, length_with_type);
+    auto chunk = create_png_chunk(chunk_type_with_data, chunk_len, chunk_type_with_data + 4);
+    if (!chunk) {
+      delete[] chunk_type_with_data;
+      continue;
+    }
 
+    unsigned long calculated_crc = crc((byte *) chunk_type_with_data, length_with_type);
     if (calculated_crc != Pixor::byte_swap_32(chunk_crc)) {
       dbgln("CRC check failed");
       return NULL;
     }
 
-    if (chunk) {
-      if (chunk->get_type() == IHDR) {
-        image->set_header((PngHeader *) chunk);
-      }
+    if (chunk->get_type() == IHDR) {
+      image->set_header((PngHeader *) chunk);
+    }
 
-      if (chunk->get_type() == IDAT) {
-        image->add_data_chunk((PngData *) chunk);
-      }
+    if (chunk->get_type() == IDAT) {
+      image->add_data_chunk((PngData *) chunk);
+    }
 
-      if (chunk->get_type() == PLTE) {
-        image->set_palette((PngPalette *) chunk);
-      }
+    if (chunk->get_type() == PLTE) {
+      image->set_palette((PngPalette *) chunk);
+    }
 
-      if (chunk->get_type() == IEND) {
-        break;
-      }
+    if (chunk->get_type() == IEND) {
+      break;
     }
   }
 
@@ -265,7 +267,7 @@ byte *PngImage::get_joined_chunks() const
   return joined_chunks;
 }
 
-byte *PngImage::get_image_bitmap() const
+std::shared_ptr<byte[]> PngImage::get_image_bitmap() const
 {
   if (data_chunks.size() == 0) {
     return NULL;
@@ -277,17 +279,16 @@ byte *PngImage::get_image_bitmap() const
   int width = get_width();
   int height = get_height();
   long unsigned dest_length = compressed_size * 1000;
-  byte *joined_chunks = get_joined_chunks();
-  byte *uncompressed_data = new byte[dest_length];
+  auto joined_chunks = std::unique_ptr<byte[]>(get_joined_chunks());
+  auto uncompressed_data = std::unique_ptr<byte[]>(new byte[dest_length]);
 
-  int res = uncompress(uncompressed_data, &dest_length, joined_chunks, compressed_size);
+  int res = uncompress(uncompressed_data.get(), &dest_length, joined_chunks.get(), compressed_size);
   dbgln("Decompressed size: %ld\n", dest_length);
   byte *decoded = new byte[width * height * (has_alpha() ? 4 : 3)];
-  ByteMatrix image_matrix(uncompressed_data, width * pixel_width + 1, height, 1);
+  ByteMatrix image_matrix(uncompressed_data.get(), width * pixel_width + 1, height, 1);
 
   if (res != 0) {
     dbgln("Uncompress error! %d\n", res);
-    // TODO: Free resources in case of fail
     return NULL;
   }
 
@@ -334,5 +335,5 @@ byte *PngImage::get_image_bitmap() const
     }
   }
 
-  return decoded;
+  return std::shared_ptr<byte[]>(decoded);
 }

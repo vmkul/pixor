@@ -1,12 +1,15 @@
 #pragma once
 #include <gtkmm/drawingarea.h>
 #include <gdkmm/pixbuf.h>
+#include <memory>
 #include "image.h"
 
 class ImageArea : public Gtk::DrawingArea
 {
+  std::shared_ptr<byte[]> image_bitmap;
+
 public:
-  ImageArea(Pixor::Image *image);
+  ImageArea(std::shared_ptr<Pixor::Image> &image);
   virtual ~ImageArea();
 
 protected:
