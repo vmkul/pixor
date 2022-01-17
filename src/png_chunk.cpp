@@ -53,16 +53,3 @@ RGBA PngPalette::get_pixel_value(int index)
 PngData::PngData(int length, std::shared_ptr<byte[]> &data) : PngChunk(IDAT, length, data) {}
 
 PngEnd::PngEnd(int length, std::shared_ptr<byte[]> &data) : PngChunk(IEND, length, data) {}
-
-
-bool equal_signatures(const byte sig1[4], const byte sig2[4])
-{
-  for (int i = 0; i < 4; i++) {
-    if (sig1[i] != sig2[i]) {
-      return false;
-    }
-  }
-
-  // TODO: Make signature checking an atomic operation by comparing two 4-byte integers
-  return true;
-}

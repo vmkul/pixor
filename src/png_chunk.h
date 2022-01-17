@@ -2,10 +2,10 @@
 #include <memory>
 #include "pixor.h"
 
-const byte PNG_HEADER_CHUNK_TYPE[] = {73, 72, 68, 82};
-const byte PNG_PALETTE_CHUNK_TYPE[] = {80, 76, 84, 69};
-const byte PNG_DATA_CHUNK_TYPE[] = {73, 68, 65, 84};
-const byte PNG_END_CHUNK_TYPE[] = {73, 69, 78, 68};
+const unsigned int PNG_HEADER_CHUNK_TYPE = 0x52444849;
+const unsigned int PNG_PALETTE_CHUNK_TYPE = 0x45544C50;
+const unsigned int PNG_DATA_CHUNK_TYPE = 0x54414449;
+const unsigned int PNG_END_CHUNK_TYPE = 0x444E4549;
 
 enum ChunkType {
   IHDR,
@@ -55,5 +55,3 @@ class PngEnd : public PngChunk {
 public:
   PngEnd(int length, std::shared_ptr<byte[]> &data);
 };
-
-bool equal_signatures(const byte sig1[4], const byte sig2[4]);
