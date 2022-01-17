@@ -13,18 +13,20 @@
 
 using namespace Pixor;
 
-PngImage *Pixor::decode_png(std::istream& data_stream)
+PngImage *Pixor::decode_png(std::istream &data_stream)
 {
   char signature[8];
   unsigned int chunk_len;
-  byte *chunk_type_with_data;
+  unsigned int chunk_type;
+  std::unique_ptr<byte[]> chunk_type_with_data;
+  std::shared_ptr<byte[]> chunk_data;
   unsigned int chunk_crc;
+  unsigned long calculated_crc;
   auto image = new PngImage();
 
   dbgln("Decoding PNG...");
 
   data_stream.read(signature, 8);
-
   for (int i = 0; i < 8; i++) {
     if ((byte) signature[i] != PNG_SIGNATURE[i]) {
       throw std::invalid_argument("PNG signature check failed");
@@ -34,38 +36,36 @@ PngImage *Pixor::decode_png(std::istream& data_stream)
   while (data_stream.good()) {
     data_stream.read((char *) &chunk_len, 4);
     chunk_len = Pixor::byte_swap_32(chunk_len);
-    int length_with_type = chunk_len + 4;
-    chunk_type_with_data = new byte[length_with_type];
+    chunk_data.reset(new byte[chunk_len]);
 
-    data_stream.read((char *) chunk_type_with_data, length_with_type);
+    data_stream.read((char *) &chunk_type, 4);
+    data_stream.read((char *) chunk_data.get(), chunk_len);
     data_stream.read((char *) &chunk_crc, 4);
 
-    auto chunk = create_png_chunk(chunk_type_with_data, chunk_len, chunk_type_with_data + 4);
-    if (!chunk) {
-      delete[] chunk_type_with_data;
-      continue;
-    }
+    chunk_type_with_data.reset(new byte[chunk_len + 4]);
+    memcpy(chunk_type_with_data.get(), (char *) &chunk_type, 4);
+    memcpy(chunk_type_with_data.get() + 4, (char *) chunk_data.get(), chunk_len);
 
-    unsigned long calculated_crc = crc((byte *) chunk_type_with_data, length_with_type);
+    calculated_crc = crc((byte *) chunk_type_with_data.get(), chunk_len + 4);
     if (calculated_crc != Pixor::byte_swap_32(chunk_crc)) {
       dbgln("CRC check failed");
       return NULL;
     }
 
-    if (chunk->get_type() == IHDR) {
-      image->set_header((PngHeader *) chunk);
-    }
-
-    if (chunk->get_type() == IDAT) {
-      image->add_data_chunk((PngData *) chunk);
-    }
-
-    if (chunk->get_type() == PLTE) {
-      image->set_palette((PngPalette *) chunk);
-    }
-
-    if (chunk->get_type() == IEND) {
+    if (equal_signatures(chunk_type_with_data.get(), PNG_HEADER_CHUNK_TYPE)) {
+      dbgln("Header chunk found");
+      image->set_header(new PngHeader(chunk_len, chunk_data));
+    } else if (equal_signatures(chunk_type_with_data.get(), PNG_PALETTE_CHUNK_TYPE)) {
+      dbgln("Palette chunk found");
+      image->set_palette(new PngPalette(chunk_len, chunk_data));
+    } else if (equal_signatures(chunk_type_with_data.get(), PNG_DATA_CHUNK_TYPE)) {
+      dbgln("Data chunk found");
+      image->add_data_chunk(new PngData(chunk_len, chunk_data));
+    } else if (equal_signatures(chunk_type_with_data.get(), PNG_END_CHUNK_TYPE)) {
+      dbgln("End chunk found");
       break;
+    } else {
+      dbgln("Found unknown chunk type: %s", std::string((char *) chunk_type_with_data.get(), 4).c_str());
     }
   }
 
