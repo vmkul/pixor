@@ -21,14 +21,14 @@ protected:
   std::shared_ptr<byte[]> data;
 
 public:
-  PngChunk(ChunkType type, int length, byte *data);
+  PngChunk(ChunkType type, int length, std::shared_ptr<byte[]> &data);
   int get_length() const {return length;};
   ChunkType get_type() const {return type;}
 };
 
 class PngHeader : public PngChunk {
 public:
-  PngHeader(int length, byte *data);
+  PngHeader(int length, std::shared_ptr<byte[]> &data);
 
   unsigned int get_width() const;
   unsigned int get_height() const;
@@ -41,19 +41,19 @@ public:
 
 class PngPalette : public PngChunk {
 public:
-  PngPalette(int length, byte *data);
+  PngPalette(int length, std::shared_ptr<byte[]> &data);
   RGBA get_pixel_value(int index);
 };
 
 class PngData : public PngChunk {
 public:
-  PngData(int length, byte *data);
+  PngData(int length, std::shared_ptr<byte[]> &data);
   byte *get_data() const {return data.get();}
 };
 
 class PngEnd : public PngChunk {
 public:
-  PngEnd(int length, byte *data);
+  PngEnd(int length, std::shared_ptr<byte[]> &data);
 };
 
-PngChunk *create_png_chunk(const byte signature[4], int length, byte *data);
+bool equal_signatures(const byte sig1[4], const byte sig2[4]);

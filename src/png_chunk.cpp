@@ -6,13 +6,13 @@
 #include "debug.h"
 #include "pixor.h"
 
-PngChunk::PngChunk(ChunkType type, int length, byte *data) :
+PngChunk::PngChunk(ChunkType type, int length, std::shared_ptr<byte[]> &data) :
   type(type),
   length(length),
   data(data) {}
 
 
-PngHeader::PngHeader(int length, byte *data) : PngChunk(IHDR, length, data)
+PngHeader::PngHeader(int length, std::shared_ptr<byte[]> &data) : PngChunk(IHDR, length, data)
 {}
 
 unsigned int PngHeader::get_width() const
@@ -38,7 +38,7 @@ byte PngHeader::get_filter_method() const {return data[11];}
 byte PngHeader::get_interlace_method() const {return data[12];}
 
 
-PngPalette::PngPalette(int length, byte *data) : PngChunk(PLTE, length, data) {}
+PngPalette::PngPalette(int length, std::shared_ptr<byte[]> &data) : PngChunk(PLTE, length, data) {}
 
 RGBA PngPalette::get_pixel_value(int index)
 {
@@ -50,9 +50,9 @@ RGBA PngPalette::get_pixel_value(int index)
 }
 
 
-PngData::PngData(int length, byte *data) : PngChunk(IDAT, length, data) {}
+PngData::PngData(int length, std::shared_ptr<byte[]> &data) : PngChunk(IDAT, length, data) {}
 
-PngEnd::PngEnd(int length, byte *data) : PngChunk(IEND, length, data) {}
+PngEnd::PngEnd(int length, std::shared_ptr<byte[]> &data) : PngChunk(IEND, length, data) {}
 
 
 bool equal_signatures(const byte sig1[4], const byte sig2[4])
@@ -65,25 +65,4 @@ bool equal_signatures(const byte sig1[4], const byte sig2[4])
 
   // TODO: Make signature checking an atomic operation by comparing two 4-byte integers
   return true;
-}
-
-
-PngChunk *create_png_chunk(const byte signature[4], int length, byte *data)
-{
-  if (equal_signatures(signature, PNG_HEADER_CHUNK_TYPE)) {
-    dbgln("Header chunk found");
-    return new PngHeader(length, data);
-  } else if (equal_signatures(signature, PNG_PALETTE_CHUNK_TYPE)) {
-    dbgln("Palette chunk found");
-    return new PngPalette(length, data);
-  } else if (equal_signatures(signature, PNG_DATA_CHUNK_TYPE)) {
-    dbgln("Data chunk found");
-    return new PngData(length, data);
-  } else if (equal_signatures(signature, PNG_END_CHUNK_TYPE)) {
-    dbgln("End chunk found");
-    return new PngEnd(length, data);
-  } else {
-    dbgln("Found unknown chunk type: %s", std::string((char *) signature, 4).c_str());
-    return nullptr;
-  }
 }
