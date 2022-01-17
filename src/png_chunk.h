@@ -2,21 +2,24 @@
 #include <memory>
 #include "pixor.h"
 
-const unsigned int PNG_HEADER_CHUNK_TYPE = 0x52444849;
-const unsigned int PNG_PALETTE_CHUNK_TYPE = 0x45544C50;
-const unsigned int PNG_DATA_CHUNK_TYPE = 0x54414449;
-const unsigned int PNG_END_CHUNK_TYPE = 0x444E4549;
+enum PngChunkType {
+  IHDR = 0x52444849,
+  PLTE = 0x45544C50,
+  IDAT = 0x54414449,
+  IEND = 0x444E4549,
+};
 
-enum ChunkType {
-  IHDR,
-  PLTE,
-  IDAT,
-  IEND
+enum PngImageType {
+  PNG_TYPE_GREYSCALE = 0,
+  PNG_TYPE_TRUECOLOUR = 2,
+  PNG_TYPE_INDEXED_COLOUR =	3,
+  PNG_TYPE_GREYSCALE_ALPHA = 4,
+  PNG_TYPE_TRUECOLOUR_ALPHA = 6,
 };
 
 class PngChunk {
 protected:
-  ChunkType type;
+  PngChunkType type;
   int length;
   std::shared_ptr<byte[]> data;
 
@@ -33,7 +36,7 @@ public:
   unsigned int get_width() const;
   unsigned int get_height() const;
   byte get_bit_depth() const;
-  byte get_colour_type() const;
+  PngImageType get_colour_type() const;
   byte get_compression_method() const;
   byte get_filter_method() const;
   byte get_interlace_method() const;
