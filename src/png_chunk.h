@@ -2,6 +2,8 @@
 #include <memory>
 #include "pixor.h"
 
+namespace Pixor {
+
 enum PngChunkType {
   IHDR = 0x52444849,
   PLTE = 0x45544C50,
@@ -70,3 +72,5 @@ public:
 };
 
 std::ostream &operator<<(std::ostream &os, PngChunk &chunk);
+
+}

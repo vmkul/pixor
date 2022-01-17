@@ -7,6 +7,8 @@
 #include "pixor.h"
 #include "crc.h"
 
+using namespace Pixor;
+
 PngChunk::PngChunk(PngChunkType type, int length, std::shared_ptr<byte[]> data) :
   type(type),
   length(length),
@@ -75,9 +77,8 @@ PngData::PngData(int length, std::shared_ptr<byte[]> data) : PngChunk(IDAT, leng
 PngEnd::PngEnd(int length, std::shared_ptr<byte[]> data) : PngChunk(IEND, length, data) {}
 
 
-std::ostream &operator<<(std::ostream &os, PngChunk &chunk)
+std::ostream &Pixor::operator<<(std::ostream &os, PngChunk &chunk)
 {
-  dbgln("Len of chunk: %d", chunk.length);
   unsigned int swapped_len = Pixor::byte_swap_32((unsigned int) chunk.length);
   unsigned int type = (unsigned int) chunk.type;
 

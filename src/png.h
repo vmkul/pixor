@@ -6,6 +6,8 @@
 #include "png_chunk.h"
 #include "image.h"
 
+namespace Pixor {
+
 enum FilterType {
   FILTER_TYPE_NONE = 0,
   FILTER_TYPE_SUB = 1,
@@ -16,7 +18,6 @@ enum FilterType {
 
 const byte PNG_SIGNATURE[] = {137, 80, 78, 71, 13, 10, 26, 10};
 
-namespace Pixor {
 class PngImage : public Pixor::Image {
   std::shared_ptr<PngHeader> header;
   std::vector<std::shared_ptr<PngData>> data_chunks;
@@ -42,4 +43,5 @@ public:
 PngImage *decode_png(std::istream& data_stream);
 
 std::ostream &operator<<(std::ostream &os, PngImage &image);
+
 }
