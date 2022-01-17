@@ -24,14 +24,25 @@ protected:
   std::shared_ptr<byte[]> data;
 
 public:
-  PngChunk(ChunkType type, int length, std::shared_ptr<byte[]> &data);
+  PngChunk(PngChunkType type, int length, std::shared_ptr<byte[]> data);
   int get_length() const {return length;};
-  ChunkType get_type() const {return type;}
+  PngChunkType get_type() const {return type;}
+  byte *get_data() const {return data.get();}
+  friend std::ostream &operator<<(std::ostream &os, PngChunk &chunk);
 };
 
 class PngHeader : public PngChunk {
 public:
-  PngHeader(int length, std::shared_ptr<byte[]> &data);
+  PngHeader(int length, std::shared_ptr<byte[]> data);
+  PngHeader(
+    int width,
+    int height,
+    PngImageType colour_type,
+    byte bit_depth = 8,
+    byte compression_method = 0,
+    byte filter_method = 0,
+    byte interlace_method = 0
+  );
 
   unsigned int get_width() const;
   unsigned int get_height() const;
@@ -44,17 +55,18 @@ public:
 
 class PngPalette : public PngChunk {
 public:
-  PngPalette(int length, std::shared_ptr<byte[]> &data);
+  PngPalette(int length, std::shared_ptr<byte[]> data);
   RGBA get_pixel_value(int index);
 };
 
 class PngData : public PngChunk {
 public:
-  PngData(int length, std::shared_ptr<byte[]> &data);
-  byte *get_data() const {return data.get();}
+  PngData(int length, std::shared_ptr<byte[]> data);
 };
 
 class PngEnd : public PngChunk {
 public:
-  PngEnd(int length, std::shared_ptr<byte[]> &data);
+  PngEnd(int length, std::shared_ptr<byte[]> data);
 };
+
+std::ostream &operator<<(std::ostream &os, PngChunk &chunk);
