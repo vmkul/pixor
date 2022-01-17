@@ -52,20 +52,20 @@ PngImage *Pixor::decode_png(std::istream &data_stream)
       return NULL;
     }
 
-    if (equal_signatures(chunk_type_with_data.get(), PNG_HEADER_CHUNK_TYPE)) {
+    if (chunk_type == PNG_HEADER_CHUNK_TYPE) {
       dbgln("Header chunk found");
       image->set_header(new PngHeader(chunk_len, chunk_data));
-    } else if (equal_signatures(chunk_type_with_data.get(), PNG_PALETTE_CHUNK_TYPE)) {
+    } else if (chunk_type == PNG_PALETTE_CHUNK_TYPE) {
       dbgln("Palette chunk found");
       image->set_palette(new PngPalette(chunk_len, chunk_data));
-    } else if (equal_signatures(chunk_type_with_data.get(), PNG_DATA_CHUNK_TYPE)) {
+    } else if (chunk_type == PNG_DATA_CHUNK_TYPE) {
       dbgln("Data chunk found");
       image->add_data_chunk(new PngData(chunk_len, chunk_data));
-    } else if (equal_signatures(chunk_type_with_data.get(), PNG_END_CHUNK_TYPE)) {
+    } else if (chunk_type == PNG_END_CHUNK_TYPE) {
       dbgln("End chunk found");
       break;
     } else {
-      dbgln("Found unknown chunk type: %s", std::string((char *) chunk_type_with_data.get(), 4).c_str());
+      dbgln("Found unknown chunk type: %s", std::string((char *) &chunk_type, 4).c_str());
     }
   }
 
