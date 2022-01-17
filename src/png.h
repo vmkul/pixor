@@ -36,7 +36,10 @@ public:
   bool has_alpha() const;
   PngImageType get_image_type() const {return header->get_colour_type();}
   void print_image_info() const;
+  friend std::ostream &operator<<(std::ostream &os, PngImage &image);
 };
 
 PngImage *decode_png(std::istream& data_stream);
+
+std::ostream &operator<<(std::ostream &os, PngImage &image);
 }

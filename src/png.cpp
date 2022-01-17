@@ -337,3 +337,20 @@ std::shared_ptr<byte[]> PngImage::get_image_bitmap() const
 
   return std::shared_ptr<byte[]>(decoded);
 }
+
+std::ostream &Pixor::operator<<(std::ostream &os, PngImage &image)
+{
+  for (int i = 0; i < 8; i++) {
+    os << PNG_SIGNATURE[i];
+  }
+
+  os << *image.header.get();
+  for (const auto &chunk : image.data_chunks) {
+    os << *chunk.get();
+  }
+
+  PngEnd end_chunk(0, nullptr);
+  os << end_chunk;
+
+  return os;
+}
