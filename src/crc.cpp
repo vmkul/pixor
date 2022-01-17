@@ -1,7 +1,7 @@
 #include "crc.h"
 
 /* Table of CRCs of all 8-bit messages. */
-unsigned long crc_table[256];
+unsigned int crc_table[256];
 
 /* Flag: has the table been computed? Initially false. */
 int crc_table_computed = 0;
@@ -9,11 +9,11 @@ int crc_table_computed = 0;
 /* Make the table for a fast CRC. */
 void make_crc_table(void)
 {
-  unsigned long c;
+  unsigned int c;
   int n, k;
 
   for (n = 0; n < 256; n++) {
-    c = (unsigned long) n;
+    c = (unsigned int) n;
     for (k = 0; k < 8; k++) {
       if (c & 1)
         c = 0xedb88320L ^ (c >> 1);
@@ -30,10 +30,10 @@ void make_crc_table(void)
   is the 1's complement of the final running CRC (see the
   crc() routine below). */
 
-unsigned long update_crc(unsigned long crc, unsigned char *buf,
+unsigned int update_crc(unsigned int crc, unsigned char *buf,
                         int len)
 {
-  unsigned long c = crc;
+  unsigned int c = crc;
   int n;
 
   if (!crc_table_computed)
@@ -45,7 +45,7 @@ unsigned long update_crc(unsigned long crc, unsigned char *buf,
 }
 
 /* Return the CRC of the bytes buf[0..len-1]. */
-unsigned long crc(unsigned char *buf, int len)
+unsigned int crc(unsigned char *buf, int len)
 {
   return update_crc(0xffffffffL, buf, len) ^ 0xffffffffL;
 }

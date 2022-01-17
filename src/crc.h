@@ -1,1 +1,1 @@
-unsigned long crc(unsigned char *buf, int len);
+unsigned int crc(unsigned char *buf, int len);
