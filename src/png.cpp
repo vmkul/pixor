@@ -21,7 +21,7 @@ PngImage *Pixor::decode_png(std::istream &data_stream)
   std::unique_ptr<byte[]> chunk_type_with_data;
   std::shared_ptr<byte[]> chunk_data;
   unsigned int chunk_crc;
-  unsigned long calculated_crc;
+  unsigned int calculated_crc;
   auto image = new PngImage();
 
   dbgln("Decoding PNG...");
@@ -52,16 +52,16 @@ PngImage *Pixor::decode_png(std::istream &data_stream)
       return NULL;
     }
 
-    if (chunk_type == PNG_HEADER_CHUNK_TYPE) {
+    if (chunk_type == IHDR) {
       dbgln("Header chunk found");
       image->set_header(new PngHeader(chunk_len, chunk_data));
-    } else if (chunk_type == PNG_PALETTE_CHUNK_TYPE) {
+    } else if (chunk_type == PLTE) {
       dbgln("Palette chunk found");
       image->set_palette(new PngPalette(chunk_len, chunk_data));
-    } else if (chunk_type == PNG_DATA_CHUNK_TYPE) {
+    } else if (chunk_type == IDAT) {
       dbgln("Data chunk found");
       image->add_data_chunk(new PngData(chunk_len, chunk_data));
-    } else if (chunk_type == PNG_END_CHUNK_TYPE) {
+    } else if (chunk_type == IEND) {
       dbgln("End chunk found");
       break;
     } else {
