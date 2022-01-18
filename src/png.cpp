@@ -267,6 +267,37 @@ byte *PngImage::get_joined_chunks() const
   return joined_chunks;
 }
 
+void PngImage::set_bitmap(byte *bitmap)
+{
+  if (!header) return;
+  data_chunks.clear();
+
+  int pixel_width = get_pixel_width();
+  int width = get_width() * pixel_width + 1;
+  int height = get_height();
+  unsigned long initial_size = width * height * pixel_width;
+  unsigned long compressed_size = initial_size * 1.2 + 12;
+  std::unique_ptr<byte[]> data_to_compress(new byte[initial_size]);
+  std::shared_ptr<byte[]> compressed_data(new byte[compressed_size]);
+
+  for (int i = 0; i < height; i++) {
+    data_to_compress[i * width] = FILTER_TYPE_NONE;
+    // TODO: Add filtering to improve compression
+
+    for (int j = 1; j < width; j++) {
+      data_to_compress[i * width + j] = bitmap[i * (width - 1) + j - 1];
+    }
+  }
+
+  int result = compress(compressed_data.get(), &compressed_size, data_to_compress.get(), initial_size);
+  if (result != 0) {
+    dbgln("Compression error code: %d", result);
+    return;
+  }
+
+  data_chunks.push_back(std::make_shared<PngData>(compressed_size, compressed_data));
+}
+
 std::shared_ptr<byte[]> PngImage::get_image_bitmap() const
 {
   if (data_chunks.size() == 0) {

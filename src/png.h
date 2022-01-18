@@ -31,6 +31,7 @@ public:
   void set_header(PngHeader *header) {this->header = std::shared_ptr<PngHeader>(header);}
   void set_palette(PngPalette *palette) {this->palette = std::shared_ptr<PngPalette>(palette);}
   void add_data_chunk(PngData *chunk) {data_chunks.push_back(std::shared_ptr<PngData>(chunk));}
+  void set_bitmap(byte *bitmap);
   std::shared_ptr<byte[]> get_image_bitmap() const;
   int get_width() const {return header->get_width();};
   int get_height() const {return header->get_height();};
