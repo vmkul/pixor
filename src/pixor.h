@@ -1,10 +1,11 @@
 #pragma once
 
 typedef unsigned char byte;
-typedef int RGBA;
+typedef unsigned int RGBA;
 #define UNUSED(expr) do { (void)(expr); } while (0)
 
 namespace Pixor {
+
   template <class T>
   T byte_swap_32(T x)
   {
@@ -17,4 +18,10 @@ namespace Pixor {
 
     return *((T *) res);
   }
+
+  unsigned int red(RGBA c);
+  unsigned int green(RGBA c);
+  unsigned int blue(RGBA c);
+  unsigned int alpha(RGBA c);
+  RGBA rgba(unsigned int r, unsigned int g, unsigned int b, unsigned int a);
 }
