@@ -12,7 +12,9 @@ add_executable(PIXOR
   png_chunk.cpp
   png.cpp
   crc.cpp
-  application.cpp)
+  application.cpp
+  pixor.cpp
+  context.cpp)
 
 target_include_directories(PIXOR PUBLIC
   ${gtkmm-3.0_INCLUDE_DIRS}
