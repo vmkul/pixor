@@ -7,15 +7,18 @@
 #include "image_area.h"
 #include "debug.h"
 
-ImageArea::ImageArea(std::shared_ptr<Pixor::Image> &image)
+ImageArea::ImageArea(std::shared_ptr<Pixor::Image> &image) :
+  drawing_context(image->get_image_bitmap(), image->get_width(), image->get_height())
 {
-  if (!image) {
-    return;
-  }
+  set_events(Gdk::BUTTON_MOTION_MASK|Gdk::BUTTON_PRESS_MASK|Gdk::BUTTON_RELEASE_MASK);
+  signal_motion_notify_event().connect(sigc::mem_fun(*this, &ImageArea::on_mouse_motion));
+  if (!image) return;
 
+  this->image = image;
   bool has_alpha = image->has_alpha();
   int pixel_width = has_alpha ? 4 : 3;
-  image_bitmap = image->get_image_bitmap();
+  image_bitmap = drawing_context.get_target_bitmap();
+  saved_bitmap = image_bitmap.get();
 
   try
   {
@@ -43,12 +46,41 @@ ImageArea::~ImageArea()
 
 bool ImageArea::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
 {
-  if (!m_image)
-    return false;
-
-  Gdk::Cairo::set_source_pixbuf(cr, m_image,
-    (get_width() - m_image->get_width()) / 2, (get_height() - m_image->get_height()) / 2);
+  auto pixbuf = Gdk::Pixbuf::create_from_data(saved_bitmap, Gdk::Colorspace::COLORSPACE_RGB,
+					  true, 8, image->get_width(), image->get_height(), (image->get_width()) * 4);
+  Gdk::Cairo::set_source_pixbuf(cr, pixbuf, 0, 0);
   cr->paint();
+
+  if (mouse_pointer_trace.size() > 2) {
+    auto last_point = mouse_pointer_trace.back();
+    auto second_to_last_point = *(mouse_pointer_trace.rbegin() + 1);
+
+    drawing_context.draw_line(second_to_last_point, last_point, 10);
+  }
+
+  return true;
+}
+
+bool ImageArea::on_mouse_motion(GdkEventMotion *motion_event)
+{
+  mouse_pointer_trace.push_back({(int) motion_event->x, (int) motion_event->y});
+  queue_draw();
+
+  return true;
+}
+
+bool ImageArea::on_button_press_event(GdkEventButton *button_event)
+{
+  UNUSED(button_event);
+  queue_draw();
+
+  return true;
+}
+
+bool ImageArea::on_button_release_event(GdkEventButton *button_event)
+{
+  UNUSED(button_event);
+  mouse_pointer_trace.clear();
 
   return true;
 }
