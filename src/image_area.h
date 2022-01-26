@@ -17,6 +17,7 @@ class ImageArea : public Gtk::DrawingArea
   Pixor::Context drawing_context;
   byte *saved_bitmap;
   std::deque<Pixor::point> mouse_pointer_trace; // deque has clear method vs. stack
+  bool button1_pressed = false;
 
 public:
   ImageArea(std::shared_ptr<Pixor::Image> &image);

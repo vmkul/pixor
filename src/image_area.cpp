@@ -22,8 +22,13 @@ ImageArea::ImageArea(std::shared_ptr<Pixor::Image> &image) :
 
   try
   {
-    m_image = Gdk::Pixbuf::create_from_data(image_bitmap.get(), Gdk::Colorspace::COLORSPACE_RGB,
-      has_alpha, 8, image->get_width(), image->get_height(), (image->get_width()) * pixel_width);
+    m_image = Gdk::Pixbuf::create_from_data(image_bitmap.get(),
+					    Gdk::Colorspace::COLORSPACE_RGB,
+					    has_alpha,
+					    8,
+					    image->get_width(),
+					    image->get_height(),
+					    image->get_width() * pixel_width);
   }
   catch(const Gio::ResourceError& ex)
   {
@@ -46,23 +51,40 @@ ImageArea::~ImageArea()
 
 bool ImageArea::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
 {
-  auto pixbuf = Gdk::Pixbuf::create_from_data(saved_bitmap, Gdk::Colorspace::COLORSPACE_RGB,
-					  true, 8, image->get_width(), image->get_height(), (image->get_width()) * 4);
+  drawing_context.set_source_rgba(Pixor::rgba(0, 255, 0, 255));
+
+  if (button1_pressed) {
+    if (mouse_pointer_trace.size() >= 2) {
+      auto last_point = mouse_pointer_trace.back();
+      auto second_to_last_point = *(mouse_pointer_trace.rbegin() + 1);
+
+      drawing_context.draw_line(second_to_last_point, last_point, 5);
+    } else if (mouse_pointer_trace.size() == 1) {
+      auto cur_point = mouse_pointer_trace[0];
+      RGBA color = Pixor::rgba(0, 255, 0, 255);
+      auto square = Pixor::Pattern::make_square(5, &color);
+
+      square.draw_onto(drawing_context, {cur_point.x, cur_point.y});
+    }
+  }
+
+  auto pixbuf = Gdk::Pixbuf::create_from_data(saved_bitmap,
+					      Gdk::Colorspace::COLORSPACE_RGB,
+					      true,
+					      8,
+					      image->get_width(),
+					      image->get_height(),
+					      image->get_width() * 4);
   Gdk::Cairo::set_source_pixbuf(cr, pixbuf, 0, 0);
   cr->paint();
-
-  if (mouse_pointer_trace.size() > 2) {
-    auto last_point = mouse_pointer_trace.back();
-    auto second_to_last_point = *(mouse_pointer_trace.rbegin() + 1);
-
-    drawing_context.draw_line(second_to_last_point, last_point, 10);
-  }
 
   return true;
 }
 
 bool ImageArea::on_mouse_motion(GdkEventMotion *motion_event)
 {
+  if (!button1_pressed) return true;
+
   mouse_pointer_trace.push_back({(int) motion_event->x, (int) motion_event->y});
   queue_draw();
 
@@ -71,7 +93,13 @@ bool ImageArea::on_mouse_motion(GdkEventMotion *motion_event)
 
 bool ImageArea::on_button_press_event(GdkEventButton *button_event)
 {
-  UNUSED(button_event);
+  if (button_event->button != 1) return true;
+
+  int pointer_x;
+  int pointer_y;
+  get_pointer(pointer_x, pointer_y);
+  button1_pressed = true;
+  mouse_pointer_trace.push_back({pointer_x, pointer_y});
   queue_draw();
 
   return true;
@@ -79,7 +107,9 @@ bool ImageArea::on_button_press_event(GdkEventButton *button_event)
 
 bool ImageArea::on_button_release_event(GdkEventButton *button_event)
 {
-  UNUSED(button_event);
+  if (button_event->button != 1) return true;
+
+  button1_pressed = false;
   mouse_pointer_trace.clear();
 
   return true;
