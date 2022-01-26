@@ -38,7 +38,6 @@ RGBA Context::get_pixel_safe(point coord, RGBA default_value)
 
 void Context::draw_line(point p1, point p2, int line_width)
 {
-  UNUSED(line_width);
   point from;
   point to;
   int dx = std::abs(p1.x - p2.x);
@@ -67,15 +66,35 @@ void Context::draw_line(point p1, point p2, int line_width)
   dx = to.x - from.x;
   dy = to.y - from.y;
   float k = dy / (float) dx;
+  Pattern drawing_pattern = Pattern::make_square(line_width, &source_color);
 
   for (int i = 0; i <= dx; i++) {
     float y_val = i * k + from.y;
     float rounded = std::round(y_val);
 
     if (y_fun) {
-      set_pixel_safe({(int) rounded, i + from.x}, source_color);
+      drawing_pattern.draw_onto(*this, {(int) rounded, i + from.x});
     } else {
-      set_pixel_safe({i + from.x, (int) rounded}, source_color);
+      drawing_pattern.draw_onto(*this, {i + from.x, (int) rounded});
+    }
+  }
+}
+
+void Pattern::draw_onto(Context &context, point center)
+{
+  if (bit_pattern.size() == 0) return;
+
+  point start {
+    center.x - (int) std::floor(width / 2.0),
+    center.y - (int) std::floor(height / 2.0)
+  };
+
+  for (int y = 0; y < height; y++) {
+    for (int x = 0; x < width; x++) {
+      RGBA *val = bit_pattern[y][x];
+      if (!val) continue;
+
+      context.set_pixel_safe({x + start.x, y + start.y}, *val);
     }
   }
 }
