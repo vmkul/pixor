@@ -51,20 +51,22 @@ ImageArea::~ImageArea()
 
 bool ImageArea::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
 {
-  drawing_context.set_source_rgba(Pixor::rgba(0, 255, 0, 255));
+  auto color = Pixor::rgba(0, 255, 0, 255);
+  auto pattern = Pixor::Pattern::make_circle(5, &color);
+
+  drawing_context.set_source_pattern(pattern);
+  drawing_context.set_source_rgba(color);
 
   if (button1_pressed) {
     if (mouse_pointer_trace.size() >= 2) {
       auto last_point = mouse_pointer_trace.back();
       auto second_to_last_point = *(mouse_pointer_trace.rbegin() + 1);
 
-      drawing_context.draw_line(second_to_last_point, last_point, 5);
+      drawing_context.draw_line_with_pattern(second_to_last_point, last_point);
     } else if (mouse_pointer_trace.size() == 1) {
       auto cur_point = mouse_pointer_trace[0];
-      RGBA color = Pixor::rgba(0, 255, 0, 255);
-      auto square = Pixor::Pattern::make_square(5, &color);
 
-      square.draw_onto(drawing_context, {cur_point.x, cur_point.y});
+      pattern->draw_onto(drawing_context, {cur_point.x, cur_point.y});
     }
   }
 
