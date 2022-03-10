@@ -14,6 +14,7 @@ add_executable(PIXOR
   crc.cpp
   application.cpp
   pixor.cpp
+  pattern.cpp
   context.cpp)
 
 target_include_directories(PIXOR PUBLIC
