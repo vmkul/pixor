@@ -1,66 +1,15 @@
 #include "context.h"
 #include "debug.h"
+#include "pixor.h"
+#include <memory>
+#include <vector>
+#include <cmath>
 
 using namespace Pixor;
 
-std::vector<point> Pixor::approx_line(point p1, point p2)
+point Context::clamp_coord(point coord) const
 {
-  std::vector<point> res;
-  point from;
-  point to;
-  int dx = std::abs(p1.x - p2.x);
-  int dy = std::abs(p1.y - p2.y);
-  bool y_fun = false;
-
-  if (dx >= dy) {
-    if (p1.x > p2.x) {
-      from = p2;
-      to = p1;
-    } else {
-      from = p1;
-      to = p2;
-    }
-  } else {
-    y_fun = true;
-    if (p1.y > p2.y) {
-      from = {p2.y, p2.x};
-      to = {p1.y, p1.x};
-    } else {
-      from = {p1.y, p1.x};
-      to = {p2.y, p2.x};
-    }
-  }
-
-  dx = to.x - from.x;
-  dy = to.y - from.y;
-  float k = dy / (float) dx;
-
-  for (int i = 0; i <= dx; i++) {
-    float y_val = i * k + from.y;
-    float rounded = std::round(y_val);
-
-    if (y_fun) {
-      res.push_back({(int) rounded, i + from.x});
-    } else {
-      res.push_back({i + from.x, (int) rounded});
-    }
-  }
-
-  return res;
-}
-
-std::vector<point> Pixor::approx_circle(int radius)
-{
-  std::vector<point> res;
-
-  for (int x = -radius; x <= radius; x++) {
-    int y = (int) std::round(std::sqrt(std::pow(radius, 2) - std::pow(x, 2)));
-
-    res.push_back({x + radius, y + radius});
-    res.push_back({x + radius, -y + radius});
-  }
-
-  return res;
+  return {clamp(0, width - 1, coord.x), clamp(0, height - 1, coord.y)};
 }
 
 bool Context::coord_in_bounds(point p)
@@ -89,14 +38,25 @@ void Context::set_pixel_safe(point coord, RGBA value)
   set_pixel(coord, value);
 }
 
+void Context::set_pixel_clamped(point coord, RGBA value)
+{
+  set_pixel(clamp_coord(coord), value);
+}
+
 RGBA Context::get_pixel(point coord)
 {
   return pixel_data[coord.y * width + coord.x];
 }
 
-RGBA *Context::get_pixel_ptr(point coord)
+RGBA *Context::get_pixel_ptr(point coord) const
 {
   return pixel_data + coord.y * width + coord.x;
+}
+
+RGBA *Context::get_pixel_ptr_clamped(point coord) const
+{
+  point clamped = clamp_coord(coord);
+  return pixel_data + clamped.y * width + clamped.x;
 }
 
 RGBA Context::get_pixel_safe(point coord, RGBA default_value)
@@ -127,21 +87,21 @@ void Context::draw_line_with_pattern(point p1, point p2)
   draw_pattern(points, *source_pattern);
 }
 
-void Pattern::draw_onto(Context &context, point center)
+std::shared_ptr<Pattern> Context::scale(int new_width, int new_height) const
 {
-  if (bit_pattern.size() == 0) return;
+  std::vector<RGBA *> row(new_width, nullptr);
+  std::vector<std::vector<RGBA *>> bitmap(new_height, row);
+  float scale_x = new_width / (float) width;
+  float scale_y = new_height / (float) height;
 
-  point start {
-    center.x - (int) std::floor(width / 2.0),
-    center.y - (int) std::floor(height / 2.0)
-  };
+  for (int x = 0; x < new_width; x++) {
+    for (int y = 0; y < new_height; y++) {
+      int src_x = std::round(x / scale_x);
+      int src_y = std::round(y / scale_y);
 
-  for (int y = 0; y < height; y++) {
-    for (int x = 0; x < width; x++) {
-      RGBA *val = bit_pattern[y][x];
-      if (!val) continue;
-
-      context.set_pixel_safe({x + start.x, y + start.y}, *val);
+      bitmap[y][x] = get_pixel_ptr_clamped({src_x, src_y});
     }
   }
+
+  return std::make_shared<Pattern>(bitmap);
 }

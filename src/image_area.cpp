@@ -15,34 +15,8 @@ ImageArea::ImageArea(std::shared_ptr<Pixor::Image> &image) :
   if (!image) return;
 
   this->image = image;
-  bool has_alpha = image->has_alpha();
-  int pixel_width = has_alpha ? 4 : 3;
   image_bitmap = drawing_context.get_target_bitmap();
   saved_bitmap = image_bitmap.get();
-
-  try
-  {
-    m_image = Gdk::Pixbuf::create_from_data(image_bitmap.get(),
-					    Gdk::Colorspace::COLORSPACE_RGB,
-					    has_alpha,
-					    8,
-					    image->get_width(),
-					    image->get_height(),
-					    image->get_width() * pixel_width);
-  }
-  catch(const Gio::ResourceError& ex)
-  {
-    dbgln("ResourceError: %s", ex.what());
-  }
-  catch(const Gdk::PixbufError& ex)
-  {
-    dbgln("PixbufError: %s", ex.what());
-  }
-
-  if (m_image)
-  {
-    set_size_request(m_image->get_width(), m_image->get_height());
-  }
 }
 
 ImageArea::~ImageArea()
@@ -70,13 +44,16 @@ bool ImageArea::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
     }
   }
 
-  auto pixbuf = Gdk::Pixbuf::create_from_data(saved_bitmap,
+  auto p = drawing_context.scale(1000, 1000);
+  auto hydrated_bitmap = p->hydrate();
+  set_size_request(p->get_width(), p->get_height());
+  auto pixbuf = Gdk::Pixbuf::create_from_data(hydrated_bitmap.get(),
 					      Gdk::Colorspace::COLORSPACE_RGB,
 					      true,
 					      8,
-					      image->get_width(),
-					      image->get_height(),
-					      image->get_width() * 4);
+					      p->get_width(),
+					      p->get_height(),
+					      p->get_width() * 4);
   Gdk::Cairo::set_source_pixbuf(cr, pixbuf, 0, 0);
   cr->paint();
 
