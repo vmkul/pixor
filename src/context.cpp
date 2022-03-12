@@ -89,8 +89,8 @@ void Context::draw_line_with_pattern(point p1, point p2)
 
 std::shared_ptr<Pattern> Context::scale(int new_width, int new_height) const
 {
-  std::vector<RGBA *> row(new_width, nullptr);
-  std::vector<std::vector<RGBA *>> bitmap(new_height, row);
+  auto bitmap = std::shared_ptr<RGBA *[]>(new RGBA *[new_width * new_height]);
+  auto res = std::make_shared<Pattern>(bitmap, new_width, new_height);
   float scale_x = new_width / (float) width;
   float scale_y = new_height / (float) height;
 
@@ -99,9 +99,9 @@ std::shared_ptr<Pattern> Context::scale(int new_width, int new_height) const
       int src_x = std::round(x / scale_x);
       int src_y = std::round(y / scale_y);
 
-      bitmap[y][x] = get_pixel_ptr_clamped({src_x, src_y});
+      res->set_pixel({x, y}, get_pixel_ptr_clamped({src_x, src_y}));
     }
   }
 
-  return std::make_shared<Pattern>(bitmap);
+  return res;
 }

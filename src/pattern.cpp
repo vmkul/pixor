@@ -6,8 +6,18 @@
 
 using namespace Pixor;
 
+RGBA *Pattern::get_pixel(point coord) const
+{
+  return bitmap[coord.y * width + coord.x];
+}
+
+void Pattern::set_pixel(point coord, RGBA *value)
+{
+  bitmap[coord.y * width + coord.x] = value;
+}
+
 void Pattern::draw_onto(Context &context, point center) {
-  if (bit_pattern.size() == 0)
+  if (!bitmap)
     return;
 
   point start{center.x - (int)std::floor(width / 2.0),
@@ -15,7 +25,7 @@ void Pattern::draw_onto(Context &context, point center) {
 
   for (int y = 0; y < height; y++) {
     for (int x = 0; x < width; x++) {
-      RGBA *val = bit_pattern[y][x];
+      RGBA *val = get_pixel({x, y});
       if (!val)
         continue;
 
@@ -24,47 +34,53 @@ void Pattern::draw_onto(Context &context, point center) {
   }
 }
 
-Pattern::Pattern(std::vector<std::vector<RGBA *>> bit_pattern)
-    : bit_pattern(bit_pattern) {
-  if (bit_pattern.size() == 0)
-    return;
-  width = bit_pattern[0].size();
-  height = bit_pattern.size();
+Pattern::Pattern(std::shared_ptr<RGBA *[]> bitmap, int width, int height)
+    : bitmap(bitmap) {
+  this->width = width;
+  this->height = height;
 }
 
-Pattern::Pattern(std::shared_ptr<Context> source_context, RGBA *mask_color)
+Pattern::Pattern(std::shared_ptr<Context> source_context, RGBA mask_color)
     : source_context(source_context), width(source_context->get_width()),
       height(source_context->get_height()) {
-  std::vector<RGBA *> row(width, nullptr);
-  std::vector<std::vector<RGBA *>> pattern(height, row);
+  bitmap = std::shared_ptr<RGBA *[]>(new RGBA *[width * height]);
 
   for (int x = 0; x < width; x++) {
     for (int y = 0; y < height; y++) {
       RGBA *pixel = this->source_context->get_pixel_ptr({x, y});
-
-      if (mask_color && *pixel == *mask_color)
-        continue;
-      pattern[y][x] = pixel;
+      if (*pixel == mask_color) {
+        set_pixel({x, y}, nullptr);
+      } else {
+        set_pixel({x, y}, pixel);
+      }
     }
   }
+}
 
-  bit_pattern = pattern;
+Pattern::Pattern(std::shared_ptr<Context> source_context)
+    : source_context(source_context), width(source_context->get_width()),
+      height(source_context->get_height()) {
+  bitmap = std::shared_ptr<RGBA *[]>(new RGBA *[width * height]);
+
+  for (int x = 0; x < width; x++) {
+    for (int y = 0; y < height; y++) {
+      RGBA *pixel = this->source_context->get_pixel_ptr({x, y});
+      set_pixel({x, y}, pixel);
+    }
+  }
 }
 
 std::shared_ptr<Pattern> Pattern::make_square(int side, RGBA *color) {
-  std::vector<std::vector<RGBA *>> pattern;
+  auto bitmap = std::shared_ptr<RGBA *[]>(new RGBA *[side * side]);
+  auto res = std::make_shared<Pattern>(bitmap, side, side);
 
   for (int i = 0; i < side; i++) {
-    std::vector<RGBA *> row;
-
     for (int j = 0; j < side; j++) {
-      row.push_back(color);
+      res->set_pixel({i, j}, color);
     }
-
-    pattern.push_back(row);
   }
 
-  return std::make_shared<Pattern>(pattern);
+  return res;
 }
 
 std::shared_ptr<Pattern> Pattern::make_circle(int radius, RGBA *color) {
@@ -87,26 +103,23 @@ std::shared_ptr<Pattern> Pattern::make_circle(int radius, RGBA *color) {
     prev_point = &point;
   }
 
-  RGBA mask = 0;
-  return std::make_shared<Pattern>(source_context, &mask);
+  return std::make_shared<Pattern>(source_context, 0);
 }
 
 std::shared_ptr<byte[]> Pattern::hydrate() const
 {
-  auto bitmap = std::shared_ptr<byte[]>(new byte[width * height * 4]);
-  auto context = Context(bitmap, width, height);
+  auto dest = new RGBA[width * height];
+  auto src = (RGBA **) bitmap.get();
 
-  for (int x = 0; x < width; x++) {
-    for (int y = 0; y < height; y++) {
-      RGBA *pixel_ptr = bit_pattern[y][x];
-      if (!pixel_ptr) {
-        dbgln("Can't hydrate pattern that contains null pointers!");
-        return nullptr;
-      }
-      
-      context.set_pixel_safe({x, y}, *pixel_ptr);
+  for (int i = 0; i < width * height; i++) {
+    RGBA *pixel_ptr = src[i];
+    if (!pixel_ptr) {
+      dbgln("Can't hydrate pattern that contains null pointers!");
+      return nullptr;
     }
+    
+    dest[i] = *pixel_ptr;
   }
 
-  return bitmap;
+  return std::shared_ptr<byte[]>((byte *) dest);
 }
