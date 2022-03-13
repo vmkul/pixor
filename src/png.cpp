@@ -1,6 +1,7 @@
 #include <exception>
 #include <iostream>
 #include <cmath>
+#include <memory>
 #include <stdio.h>
 #include <cstring>
 #include <zlib.h>
@@ -367,6 +368,29 @@ std::shared_ptr<byte[]> PngImage::get_image_bitmap() const
   }
 
   return std::shared_ptr<byte[]>(decoded);
+}
+
+std::shared_ptr<byte[]> PngImage::get_image_bitmap_with_alpha() const
+{
+  if (has_alpha()) return get_image_bitmap();
+
+  int width = get_width();
+  int height = get_height();
+  auto res = std::shared_ptr<byte[]>(new byte[width * height * 4]);
+  auto res_ptr = res.get();
+  auto bitmap_with_no_alpha = get_image_bitmap();
+
+  for (int i = 0; i < width * height; i++) {
+    int src_index = i * 3;
+    int dest_index = i * 4;
+
+    res_ptr[dest_index + 0] = bitmap_with_no_alpha[src_index];
+    res_ptr[dest_index + 1] = bitmap_with_no_alpha[src_index + 1];
+    res_ptr[dest_index + 2] = bitmap_with_no_alpha[src_index + 2];
+    res_ptr[dest_index + 3] = 255;
+  }
+
+  return res;
 }
 
 std::ostream &Pixor::operator<<(std::ostream &os, PngImage &image)

@@ -8,7 +8,7 @@
 #include "debug.h"
 
 ImageArea::ImageArea(std::shared_ptr<Pixor::Image> &image) :
-  drawing_context(image->get_image_bitmap(), image->get_width(), image->get_height())
+  drawing_context(image->get_image_bitmap_with_alpha(), image->get_width(), image->get_height())
 {
   set_events(Gdk::BUTTON_MOTION_MASK|Gdk::BUTTON_PRESS_MASK|Gdk::BUTTON_RELEASE_MASK);
   signal_motion_notify_event().connect(sigc::mem_fun(*this, &ImageArea::on_mouse_motion));
@@ -44,16 +44,13 @@ bool ImageArea::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
     }
   }
 
-  auto p = drawing_context.scale(1000, 1000);
-  auto hydrated_bitmap = p->hydrate();
-  set_size_request(p->get_width(), p->get_height());
-  auto pixbuf = Gdk::Pixbuf::create_from_data(hydrated_bitmap.get(),
+  auto pixbuf = Gdk::Pixbuf::create_from_data(image_bitmap.get(),
 					      Gdk::Colorspace::COLORSPACE_RGB,
 					      true,
 					      8,
-					      p->get_width(),
-					      p->get_height(),
-					      p->get_width() * 4);
+					      drawing_context.get_width(),
+					      drawing_context.get_height(),
+					      drawing_context.get_width() * 4);
   Gdk::Cairo::set_source_pixbuf(cr, pixbuf, 0, 0);
   cr->paint();
 
