@@ -8,6 +8,7 @@ class Image {
 public:
   virtual std::shared_ptr<byte[]> get_image_bitmap() const = 0;
   virtual std::shared_ptr<byte[]> get_image_bitmap_with_alpha() const = 0;
+  virtual std::shared_ptr<byte[]> get_image_bitmap_greyscale() const = 0;
   virtual int get_width() const = 0;
   virtual int get_height() const = 0;
   virtual bool has_alpha() const = 0;

@@ -393,6 +393,22 @@ std::shared_ptr<byte[]> PngImage::get_image_bitmap_with_alpha() const
   return res;
 }
 
+std::shared_ptr<byte[]> PngImage::get_image_bitmap_greyscale() const
+{
+  auto res = get_image_bitmap_with_alpha();
+  auto res_ptr = (RGBA *) res.get();
+  int width = get_width();
+  int height = get_height();
+
+  for (int i = 0; i < width * height; i++) {
+    RGBA pixel = res_ptr[i];
+    RGBA avg_val = (red(pixel) + green(pixel) + blue(pixel)) / 3;
+    res_ptr[i] = rgba(avg_val, avg_val, avg_val, alpha(pixel));
+  }
+
+  return res;
+}
+
 std::ostream &Pixor::operator<<(std::ostream &os, PngImage &image)
 {
   for (int i = 0; i < 8; i++) {

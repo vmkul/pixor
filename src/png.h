@@ -34,6 +34,7 @@ public:
   void set_bitmap(byte *bitmap);
   std::shared_ptr<byte[]> get_image_bitmap() const;
   std::shared_ptr<byte[]> get_image_bitmap_with_alpha() const;
+  std::shared_ptr<byte[]> get_image_bitmap_greyscale() const;
   int get_width() const {return header->get_width();};
   int get_height() const {return header->get_height();};
   bool has_alpha() const;
