@@ -118,9 +118,9 @@ std::shared_ptr<Context> Context::convolve(Matrix<float> kernel)
   for (int image_row = 0; image_row < height; image_row++) {
     for (int image_col = 0; image_col < width; image_col++) {
       RGBA pixel = get_pixel({image_col, image_row});
-      RGBA r_val = 0;
-      RGBA g_val = 0;
-      RGBA b_val = 0;
+      float r_val = 0;
+      float g_val = 0;
+      float b_val = 0;
 
       for (int kernel_row = 0; kernel_row < kernel_height; kernel_row++) {
         for (int kernel_col = 0; kernel_col < kernel_width; kernel_col++) {
