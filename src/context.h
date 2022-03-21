@@ -5,6 +5,7 @@
 #include "pixor.h"
 #include "debug.h"
 #include "pattern.h"
+#include "matrix.h"
 
 namespace Pixor {
 
@@ -71,6 +72,7 @@ public:
   void draw_line_with_pattern(point p1, point p2);
   const std::shared_ptr<byte[]> get_target_bitmap() const {return bitmap;}
   std::shared_ptr<Pattern> scale(int new_width, int new_height) const;
+  std::shared_ptr<Context> convolve(Matrix<float> m);
 };
 
 }

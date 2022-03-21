@@ -105,3 +105,50 @@ std::shared_ptr<Pattern> Context::scale(int new_width, int new_height) const
 
   return res;
 }
+
+std::shared_ptr<Context> Context::convolve(Matrix<float> kernel)
+{
+  auto res = std::shared_ptr<Context>(new Context(*this));
+  int kernel_width = kernel.get_width();
+  int kernel_height = kernel.get_height();
+  int offset = (kernel_width - 1) / 2;
+  float weight_sum = kernel.sum();
+  assert(kernel_width == kernel_height);
+  assert(kernel_width % 2 == 1);
+
+  for (int image_row = 0; image_row < height; image_row++) {
+    for (int image_col = 0; image_col < width; image_col++) {
+      RGBA pixel = get_pixel({image_col, image_row});
+      RGBA r_val = 0;
+      RGBA g_val = 0;
+      RGBA b_val = 0;
+
+      for (int kernel_row = 0; kernel_row < kernel_height; kernel_row++) {
+        for (int kernel_col = 0; kernel_col < kernel_width; kernel_col++) {
+          int src_row = image_row + kernel_row - offset;
+          int src_col = image_col + kernel_col - offset;
+          if (src_row < 0 || src_row > height - 1) {
+            src_row = image_row + (kernel_height - kernel_row) - offset;
+          }
+          if (src_col < 0 || src_col > width - 1) {
+            src_col = image_row + (kernel_width - kernel_col) - offset;
+          }
+          RGBA src_pixel = get_pixel({src_col, src_row});
+          float k_val = kernel[kernel_height - 1 - kernel_row][kernel_width - 1 - kernel_col];
+
+          r_val += k_val * red(src_pixel);
+          g_val += k_val * green(src_pixel);
+          b_val += k_val * blue(src_pixel);
+        }
+      }
+
+      res->set_pixel({image_col, image_row}, rgba(
+        r_val / weight_sum,
+        g_val / weight_sum,
+        b_val / weight_sum,
+        alpha(pixel)));
+    }
+  }
+
+  return res;
+}
