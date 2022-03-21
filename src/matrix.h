@@ -21,6 +21,8 @@ class Matrix {
 
 public:
   Matrix(int width, int height);
+  int get_width() {return width;};
+  int get_height() {return height;};
   Row<T> operator[](int index);
   Matrix<T> power(int exponent);
   Matrix<T> add(Matrix<T> other);
@@ -28,6 +30,7 @@ public:
   Matrix<T> div(float k);
   Matrix<T> exp();
   Matrix<T> neg();
+  T sum();
   void print();
 };
 

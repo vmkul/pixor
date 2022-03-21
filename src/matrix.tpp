@@ -125,3 +125,16 @@ Matrix<T> Matrix<T>::neg() {
   
   return res;
 }
+
+template <class T>
+T Matrix<T>::sum() {
+  T res = 0;
+
+  for (int i = 0; i < height; i++) {
+    for (int j = 0; j < width; j++) {
+      res += (*this)[i][j];
+    }
+  }
+
+  return res;
+}
