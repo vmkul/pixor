@@ -112,7 +112,6 @@ std::shared_ptr<Context> Context::convolve(Matrix<float> kernel)
   int kernel_width = kernel.get_width();
   int kernel_height = kernel.get_height();
   int offset = (kernel_width - 1) / 2;
-  float weight_sum = kernel.sum();
   assert(kernel_width == kernel_height);
   assert(kernel_width % 2 == 1);
 
@@ -143,9 +142,9 @@ std::shared_ptr<Context> Context::convolve(Matrix<float> kernel)
       }
 
       res->set_pixel({image_col, image_row}, rgba(
-        r_val / weight_sum,
-        g_val / weight_sum,
-        b_val / weight_sum,
+        r_val,
+        g_val,
+        b_val,
         alpha(pixel)));
     }
   }

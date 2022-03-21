@@ -38,5 +38,6 @@ Pixor::Matrix<float> gaussian_kernel(int size, float sigma)
   auto y = y_mgrid(size);
   float normal = 1 / (2.0 * M_PI * pow(sigma, 2));
 
-  return x.power(2).add(y.power(2)).div(2.0 * pow(sigma, 2)).neg().exp().mult(normal);
+  auto kernel = x.power(2).add(y.power(2)).div(2.0 * pow(sigma, 2)).neg().exp().mult(normal);
+  return kernel.div(kernel.sum());
 }
