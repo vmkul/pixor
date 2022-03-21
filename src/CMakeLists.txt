@@ -15,7 +15,8 @@ add_executable(PIXOR
   application.cpp
   pixor.cpp
   pattern.cpp
-  context.cpp)
+  context.cpp
+  canny.cpp)
 
 target_include_directories(PIXOR PUBLIC
   ${gtkmm-3.0_INCLUDE_DIRS}
