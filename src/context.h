@@ -63,7 +63,7 @@ public:
   void set_pixel(point coord, RGBA value);
   void set_pixel_safe(point coord, RGBA value);
   void set_pixel_clamped(point coord, RGBA value);
-  RGBA get_pixel(point coord);
+  RGBA get_pixel(point coord) const;
   RGBA *get_pixel_ptr(point coord) const;
   RGBA *get_pixel_ptr_clamped(point coord) const;
   RGBA get_pixel_safe(point coord, RGBA default_value = 0);
@@ -73,6 +73,8 @@ public:
   const std::shared_ptr<byte[]> get_target_bitmap() const {return bitmap;}
   std::shared_ptr<Pattern> scale(int new_width, int new_height) const;
   std::shared_ptr<Context> convolve(Matrix<float> m);
+  std::shared_ptr<Matrix<double>> get_matrix() const;
+  void set_matrix(Matrix<double> &m);
 };
 
 }

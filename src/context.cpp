@@ -43,7 +43,7 @@ void Context::set_pixel_clamped(point coord, RGBA value)
   set_pixel(clamp_coord(coord), value);
 }
 
-RGBA Context::get_pixel(point coord)
+RGBA Context::get_pixel(point coord) const
 {
   return pixel_data[coord.y * width + coord.x];
 }
@@ -150,4 +150,29 @@ std::shared_ptr<Context> Context::convolve(Matrix<float> kernel)
   }
 
   return res;
+}
+
+std::shared_ptr<Matrix<double>> Context::get_matrix() const
+{
+  auto res = std::shared_ptr<Matrix<double>>(new Matrix<double>(width, height));
+
+  for (int x = 0; x < width; x++) {
+    for (int y = 0; y < height; y++) {
+      RGBA pixel = get_pixel({x, y});
+      (*res)[y][x] = red(pixel);
+    }
+  }
+
+  return res;
+}
+
+void Context::set_matrix(Matrix<double> &m)
+{
+  for (int x = 0; x < width; x++) {
+    for (int y = 0; y < height; y++) {
+      RGBA pixel = get_pixel({x, y});
+      double val = m[y][x];
+      set_pixel({x, y}, rgba(val, val, val, alpha(pixel)));
+    }
+  }
 }
