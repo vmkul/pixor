@@ -26,6 +26,20 @@ Matrix<T>::Matrix(int width, int height) :
 }
 
 template <class T>
+Matrix<T>::Matrix(std::vector<std::vector<T>> matrix) :
+  width(matrix[0].size()),
+  height(matrix.size())
+{
+  m = std::shared_ptr<T>(new T[width * height]);
+
+  for (int i = 0; i < height; i++) {
+    for (int j = 0; j < width; j++) {
+      (*this)[i][j] = matrix[i][j];
+    }
+  }
+}
+
+template <class T>
 Row<T> Matrix<T>::operator[](int index)
 {
   assert(index >= 0 && index < height);
@@ -133,6 +147,75 @@ T Matrix<T>::sum() {
   for (int i = 0; i < height; i++) {
     for (int j = 0; j < width; j++) {
       res += (*this)[i][j];
+    }
+  }
+
+  return res;
+}
+
+template <class T>
+T Matrix<T>::max() {
+  T res = (*this)[0][0];
+
+  for (int i = 0; i < height; i++) {
+    for (int j = 0; j < width; j++) {
+      T val = (*this)[i][j];
+      if (val > res) res = val;
+    }
+  }
+
+  return res;
+}
+
+template <class T>
+Matrix<T> Matrix<T>::convolve(Matrix<T> kernel) {
+  Matrix<T> res(width, height);
+  int kernel_width = kernel.get_width();
+  int kernel_height = kernel.get_height();
+  int offset = (kernel_width - 1) / 2;
+  assert(kernel_width == kernel_height);
+  assert(kernel_width % 2 == 1);
+
+  for (int row = 0; row < height; row++) {
+    for (int col = 0; col < width; col++) {
+      T val = 0;
+
+      for (int kernel_row = 0; kernel_row < kernel_height; kernel_row++) {
+        for (int kernel_col = 0; kernel_col < kernel_width; kernel_col++) {
+          int src_row = row + kernel_row - offset;
+          int src_col = col + kernel_col - offset;
+          if (src_row < 0 || src_row > height - 1) {
+            src_row = row + (kernel_height - kernel_row) - offset;
+          }
+          if (src_col < 0 || src_col > width - 1) {
+            src_col = col + (kernel_width - kernel_col) - offset;
+          }
+          T src_val = (*this)[src_row][src_col];
+          T k_val = kernel[kernel_height - 1 - kernel_row][kernel_width - 1 - kernel_col];
+
+          val += k_val * src_val;
+        }
+      }
+      
+      res[row][col] = val;
+    }
+  }
+
+  return res;
+}
+
+template <class T>
+Matrix<T> Matrix<T>::hypot(Matrix<T> other)
+{
+  auto res = Matrix<T>(width, height);
+
+  for (int i = 0; i < height; i++) {
+    for (int j = 0; j < width; j++) {
+      T val1 = (*this)[i][j];
+      T val2 = other[i][j];
+      T r = sqrt(val1 * val1 + val2 * val2);
+
+      res[i][j] = r;
     }
   }
 

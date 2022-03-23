@@ -1,5 +1,6 @@
 #pragma once
 #include <memory>
+#include <vector>
 
 namespace Pixor {
 
@@ -21,6 +22,7 @@ class Matrix {
 
 public:
   Matrix(int width, int height);
+  Matrix(std::vector<std::vector<T>> matrix);
   int get_width() {return width;};
   int get_height() {return height;};
   Row<T> operator[](int index);
@@ -30,7 +32,10 @@ public:
   Matrix<T> div(float k);
   Matrix<T> exp();
   Matrix<T> neg();
+  Matrix<T> convolve(Matrix<T> kernel);
+  Matrix<T> hypot(Matrix<T> other);
   T sum();
+  T max();
   void print();
 };
 
