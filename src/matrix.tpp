@@ -23,6 +23,12 @@ Matrix<T>::Matrix(int width, int height) :
   height(height)
 {
   m = std::shared_ptr<T>(new T[width * height]);
+
+  for (int i = 0; i < height; i++) {
+    for (int j = 0; j < width; j++) {
+      (*this)[i][j] = 0;
+    }
+  }
 }
 
 template <class T>
@@ -214,6 +220,24 @@ Matrix<T> Matrix<T>::hypot(Matrix<T> other)
       T val1 = (*this)[i][j];
       T val2 = other[i][j];
       T r = sqrt(val1 * val1 + val2 * val2);
+
+      res[i][j] = r;
+    }
+  }
+
+  return res;
+}
+
+template <class T>
+Matrix<T> Matrix<T>::arctan2(Matrix<T> other)
+{
+  auto res = Matrix<T>(width, height);
+
+  for (int i = 0; i < height; i++) {
+    for (int j = 0; j < width; j++) {
+      T val1 = (*this)[i][j];
+      T val2 = other[i][j];
+      T r = atan(val1 / val2);
 
       res[i][j] = r;
     }

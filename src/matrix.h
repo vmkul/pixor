@@ -34,6 +34,7 @@ public:
   Matrix<T> neg();
   Matrix<T> convolve(Matrix<T> kernel);
   Matrix<T> hypot(Matrix<T> other);
+  Matrix<T> arctan2(Matrix<T> other);
   T sum();
   T max();
   void print();
