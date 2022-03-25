@@ -32,7 +32,7 @@ public:
   Matrix<T> div(float k);
   Matrix<T> exp();
   Matrix<T> neg();
-  Matrix<T> convolve(Matrix<T> kernel);
+  Matrix<T> convolve(Matrix<T> kernel, int num_threads);
   Matrix<T> hypot(Matrix<T> other);
   Matrix<T> arctan2(Matrix<T> other);
   T sum();

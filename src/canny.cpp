@@ -43,15 +43,15 @@ Pixor::Matrix<double> gaussian_kernel(int size, double sigma = 1)
   return kernel.div(kernel.sum());
 }
 
-Pixor::Matrix<double> sobel_filter(Pixor::Matrix<double> &m, Pixor::Matrix<double> &theta)
+Pixor::Matrix<double> sobel_filter(Pixor::Matrix<double> &m, Pixor::Matrix<double> &theta, int num_threads)
 {
   std::vector<std::vector<double>> kx_v = {{-1, 0, 1}, {-2, 0, 2}, {-1, 0, 1}};
   std::vector<std::vector<double>> ky_v = {{1, 2, 1}, {0, 0, 0}, {-1, -2, -1}};
   Matrix<double> kx(kx_v);
   Matrix<double> ky(ky_v);
 
-  auto ix = m.convolve(kx);
-  auto iy = m.convolve(ky);
+  auto ix = m.convolve(kx, num_threads);
+  auto iy = m.convolve(ky, num_threads);
   auto hypot = ix.hypot(iy);
   hypot = hypot.div(hypot.max()).mult(255);
   theta = iy.arctan2(ix);
@@ -175,13 +175,13 @@ Pixor::Matrix<double> hysteresis(Pixor::Matrix<double> &m, int weak = 25, int st
   return res;
 }
 
-Pixor::Matrix<double> canny_edge_detector(Pixor::Matrix<double> &m)
+Pixor::Matrix<double> canny_edge_detector(Pixor::Matrix<double> &m, int num_threads)
 {
-  auto res = m.convolve(gaussian_kernel(5));
+  auto res = m.convolve(gaussian_kernel(5), num_threads);
   Pixor::Matrix<double> theta(100, 100);
-  res = sobel_filter(res, theta);
+  res = sobel_filter(res, theta, num_threads);
   res = non_max_suppression(res, theta);
-  res = threshold(res);
+  res = threshold(res, 0.9, 0.2);
   res = hysteresis(res);
   
   return res;

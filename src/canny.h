@@ -1,4 +1,4 @@
 #pragma once
 #include "matrix.h"
 
-Pixor::Matrix<double> canny_edge_detector(Pixor::Matrix<double> &m);
+Pixor::Matrix<double> canny_edge_detector(Pixor::Matrix<double> &m, int num_threads);

@@ -1,6 +1,7 @@
 #include <iostream>
 #include <cassert>
 #include <cmath>
+#include <thread>
 
 using namespace Pixor;
 
@@ -174,15 +175,17 @@ T Matrix<T>::max() {
 }
 
 template <class T>
-Matrix<T> Matrix<T>::convolve(Matrix<T> kernel) {
-  Matrix<T> res(width, height);
+void convolve_stripe(Matrix<T> kernel, Matrix<T> src, Matrix<T> res, int from_row, int to_row)
+{
+  int width = src.get_width();
+  int height = src.get_height();
   int kernel_width = kernel.get_width();
   int kernel_height = kernel.get_height();
   int offset = (kernel_width - 1) / 2;
   assert(kernel_width == kernel_height);
   assert(kernel_width % 2 == 1);
 
-  for (int row = 0; row < height; row++) {
+  for (int row = from_row; row < to_row; row++) {
     for (int col = 0; col < width; col++) {
       T val = 0;
 
@@ -196,7 +199,7 @@ Matrix<T> Matrix<T>::convolve(Matrix<T> kernel) {
           if (src_col < 0 || src_col > width - 1) {
             src_col = col + (kernel_width - kernel_col) - offset;
           }
-          T src_val = (*this)[src_row][src_col];
+          T src_val = src[src_row][src_col];
           T k_val = kernel[kernel_height - 1 - kernel_row][kernel_width - 1 - kernel_col];
 
           val += k_val * src_val;
@@ -205,6 +208,28 @@ Matrix<T> Matrix<T>::convolve(Matrix<T> kernel) {
       
       res[row][col] = val;
     }
+  }
+}
+
+template <class T>
+Matrix<T> Matrix<T>::convolve(Matrix<T> kernel, int num_threads) {
+  Matrix<T> res(width, height);
+  int rows_per_thread = height / num_threads;
+  int start_row = 0;
+  std::thread threads[num_threads];
+
+  for (int i = 0; i < num_threads; i++) {
+    if (i == num_threads - 1) {
+      threads[i] = std::thread(convolve_stripe<T>, kernel, *this, res, start_row, height);
+    } else {
+      threads[i] = std::thread(convolve_stripe<T>, kernel, *this, res, start_row, start_row + rows_per_thread);
+    }
+
+    start_row += rows_per_thread;
+  }
+
+  for (int i = 0; i < num_threads; i++) {
+    threads[i].join();
   }
 
   return res;
