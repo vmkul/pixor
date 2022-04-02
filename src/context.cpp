@@ -4,6 +4,7 @@
 #include <memory>
 #include <vector>
 #include <cmath>
+#include <cassert>
 
 using namespace Pixor;
 
@@ -106,7 +107,7 @@ std::shared_ptr<Pattern> Context::scale(int new_width, int new_height) const
   return res;
 }
 
-std::shared_ptr<Context> Context::convolve(Matrix<float> kernel)
+std::shared_ptr<Context> Context::convolve(Matrix kernel)
 {
   auto res = std::shared_ptr<Context>(new Context(*this));
   int kernel_width = kernel.get_width();
@@ -152,9 +153,9 @@ std::shared_ptr<Context> Context::convolve(Matrix<float> kernel)
   return res;
 }
 
-std::shared_ptr<Matrix<double>> Context::get_matrix() const
+std::shared_ptr<Matrix> Context::get_matrix() const
 {
-  auto res = std::shared_ptr<Matrix<double>>(new Matrix<double>(width, height));
+  auto res = std::shared_ptr<Matrix>(new Matrix(width, height));
 
   for (int x = 0; x < width; x++) {
     for (int y = 0; y < height; y++) {
@@ -166,7 +167,7 @@ std::shared_ptr<Matrix<double>> Context::get_matrix() const
   return res;
 }
 
-void Context::set_matrix(Matrix<double> &m)
+void Context::set_matrix(Matrix &m)
 {
   for (int x = 0; x < width; x++) {
     for (int y = 0; y < height; y++) {

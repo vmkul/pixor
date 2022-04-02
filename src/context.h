@@ -72,9 +72,9 @@ public:
   void draw_line_with_pattern(point p1, point p2);
   const std::shared_ptr<byte[]> get_target_bitmap() const {return bitmap;}
   std::shared_ptr<Pattern> scale(int new_width, int new_height) const;
-  std::shared_ptr<Context> convolve(Matrix<float> m);
-  std::shared_ptr<Matrix<double>> get_matrix() const;
-  void set_matrix(Matrix<double> &m);
+  std::shared_ptr<Context> convolve(Matrix m);
+  std::shared_ptr<Matrix> get_matrix() const;
+  void set_matrix(Matrix &m);
 };
 
 }

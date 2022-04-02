@@ -6,6 +6,8 @@ pkg_check_modules(gtkmm-3.0 REQUIRED gtkmm-3.0)
 pkg_check_modules(zlib REQUIRED zlib)
 
 add_executable(PIXOR
+  cuda.cu
+  matrix.cu
   main.cpp 
   main_window.cpp
   image_area.cpp
@@ -16,7 +18,8 @@ add_executable(PIXOR
   pixor.cpp
   pattern.cpp
   context.cpp
-  canny.cpp)
+  canny.cpp
+)
 
 target_include_directories(PIXOR PUBLIC
   ${gtkmm-3.0_INCLUDE_DIRS}

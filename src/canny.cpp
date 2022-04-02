@@ -3,10 +3,10 @@
 #include <cassert>
 #include <math.h>
 
-Pixor::Matrix<double> x_mgrid(int val)
+Pixor::Matrix x_mgrid(int val)
 {
   int size = val * 2 + 1;
-  Pixor::Matrix<double> res(size, size);
+  Pixor::Matrix res(size, size);
 
   for (int row = 0; row < size; row++) {
     for (int i = 0; i < size; i++) {
@@ -17,10 +17,10 @@ Pixor::Matrix<double> x_mgrid(int val)
   return res;
 }
 
-Pixor::Matrix<double> y_mgrid(int val)
+Pixor::Matrix y_mgrid(int val)
 {
   int size = val * 2 + 1;
-  Pixor::Matrix<double> res(size, size);
+  Pixor::Matrix res(size, size);
 
   for (int col = 0; col < size; col++) {
     for (int i = 0; i < size; i++) {
@@ -31,7 +31,7 @@ Pixor::Matrix<double> y_mgrid(int val)
   return res;
 }
 
-Pixor::Matrix<double> gaussian_kernel(int size, double sigma = 1)
+Pixor::Matrix gaussian_kernel(int size, double sigma = 1)
 {
   assert(size % 2 == 1);
   size /= 2;
@@ -43,12 +43,12 @@ Pixor::Matrix<double> gaussian_kernel(int size, double sigma = 1)
   return kernel.div(kernel.sum());
 }
 
-Pixor::Matrix<double> sobel_filter(Pixor::Matrix<double> &m, Pixor::Matrix<double> &theta)
+Pixor::Matrix sobel_filter(Pixor::Matrix &m, Pixor::Matrix &theta)
 {
   std::vector<std::vector<double>> kx_v = {{-1, 0, 1}, {-2, 0, 2}, {-1, 0, 1}};
   std::vector<std::vector<double>> ky_v = {{1, 2, 1}, {0, 0, 0}, {-1, -2, -1}};
-  Matrix<double> kx(kx_v);
-  Matrix<double> ky(ky_v);
+  Pixor::Matrix kx(kx_v);
+  Pixor::Matrix ky(ky_v);
 
   auto ix = m.convolve(kx);
   auto iy = m.convolve(ky);
@@ -59,11 +59,11 @@ Pixor::Matrix<double> sobel_filter(Pixor::Matrix<double> &m, Pixor::Matrix<doubl
   return hypot;
 }
 
-Pixor::Matrix<double> non_max_suppression(Pixor::Matrix<double> &m, Pixor::Matrix<double> &theta)
+Pixor::Matrix non_max_suppression(Pixor::Matrix &m, Pixor::Matrix &theta)
 {
   int width = m.get_width();
   int height = m.get_height();
-  Pixor::Matrix<double> res(width, height);
+  Pixor::Matrix res(width, height);
   auto angle = theta.mult(180).div(M_PI);
   for (int i = 0; i < height; i++) {
     for (int j = 0; j < width; j++) {
@@ -112,13 +112,13 @@ Pixor::Matrix<double> non_max_suppression(Pixor::Matrix<double> &m, Pixor::Matri
   return res;
 }
 
-Pixor::Matrix<double> threshold(Pixor::Matrix<double> &m, double low_threshold_ratio = 0.05, double high_threshold_ratio = 0.09)
+Pixor::Matrix threshold(Pixor::Matrix &m, double low_threshold_ratio = 0.05, double high_threshold_ratio = 0.09)
 {
   auto high_threshold = m.max() * high_threshold_ratio;
   auto low_threshold = high_threshold * low_threshold_ratio;
   int width = m.get_width();
   int height = m.get_height();
-  Pixor::Matrix<double> res(width, height);
+  Pixor::Matrix res(width, height);
   int weak = 25;
   int strong = 255;
 
@@ -137,11 +137,11 @@ Pixor::Matrix<double> threshold(Pixor::Matrix<double> &m, double low_threshold_r
   return res;
 }
 
-Pixor::Matrix<double> hysteresis(Pixor::Matrix<double> &m, int weak = 25, int strong = 255)
+Pixor::Matrix hysteresis(Pixor::Matrix &m, int weak = 25, int strong = 255)
 {
   int width = m.get_width();
   int height = m.get_height();
-  Pixor::Matrix<double> res(m);
+  Pixor::Matrix res(m);
   for (int i = 0; i < height; i++) {
     for (int j = 0; j < width; j++) {
       res[i][j] = m[i][j];
@@ -175,10 +175,10 @@ Pixor::Matrix<double> hysteresis(Pixor::Matrix<double> &m, int weak = 25, int st
   return res;
 }
 
-Pixor::Matrix<double> canny_edge_detector(Pixor::Matrix<double> &m)
+Pixor::Matrix canny_edge_detector(Pixor::Matrix &m)
 {
   auto res = m.convolve(gaussian_kernel(5));
-  Pixor::Matrix<double> theta(100, 100);
+  Pixor::Matrix theta(100, 100);
   res = sobel_filter(res, theta);
   res = non_max_suppression(res, theta);
   res = threshold(res);
