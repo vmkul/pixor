@@ -9,6 +9,9 @@ using namespace Pixor;
 const int NUM_BLOCKS = 100;
 const int THREADS_PER_BLOCK = 512;
 
+// Try to mutate current matrix instead of returning new ones
+// and calling cudaMallocManaged too many times.
+
 __host__
 __device__
 Row::Row(int length, double *r) :
@@ -94,9 +97,7 @@ void matrix_power(Matrix src, Matrix dest, int exponent)
   int stride = blockDim.x * gridDim.x;
   
   for (; index < width * height; index += stride) {
-    int i = index / width;
-    int j = index - i * width;
-    dest[i][j] = pow(src[i][j], exponent);
+    dest.m[index] = pow(src.m[index], exponent);
   }
 }
 
@@ -110,75 +111,119 @@ Matrix Matrix::power(int exponent)
   return res;
 }
 
+__global__
+void matrix_add(Matrix src, Matrix dest, Matrix other)
+{
+  int width = src.get_width();
+  int height = src.get_height();
+  int index = blockIdx.x * blockDim.x + threadIdx.x;
+  int stride = blockDim.x * gridDim.x;
+  
+  for (; index < width * height; index += stride) {
+    dest.m[index] = src.m[index] + other.m[index];
+  }
+}
 
 Matrix Matrix::add(Matrix other)
 {
   Matrix res(width, height);
 
-  for (int i = 0; i < height; i++) {
-    for (int j = 0; j < width; j++) {
-      res[i][j] = (*this)[i][j] + other[i][j];
-    }
-  }
+  matrix_add<<<NUM_BLOCKS, THREADS_PER_BLOCK>>>(*this, res, other);
+  cudaDeviceSynchronize();
   
   return res;
 }
 
+__global__
+void matrix_mult(Matrix src, Matrix dest, double k)
+{
+  int width = src.get_width();
+  int height = src.get_height();
+  int index = blockIdx.x * blockDim.x + threadIdx.x;
+  int stride = blockDim.x * gridDim.x;
+  
+  for (; index < width * height; index += stride) {
+    dest.m[index] = src.m[index] * k;
+  }
+}
 
-Matrix Matrix::mult(float k)
+Matrix Matrix::mult(double k)
 {
   Matrix res(width, height);
 
-  for (int i = 0; i < height; i++) {
-    for (int j = 0; j < width; j++) {
-      res[i][j] = (*this)[i][j] * k;
-    }
-  }
+  matrix_mult<<<NUM_BLOCKS, THREADS_PER_BLOCK>>>(*this, res, k);
+  cudaDeviceSynchronize();
   
   return res;
 }
 
+__global__
+void matrix_div(Matrix src, Matrix dest, double k)
+{
+  int width = src.get_width();
+  int height = src.get_height();
+  int index = blockIdx.x * blockDim.x + threadIdx.x;
+  int stride = blockDim.x * gridDim.x;
+  
+  for (; index < width * height; index += stride) {
+    dest.m[index] = src.m[index] / k;
+  }
+}
 
-Matrix Matrix::div(float k)
+Matrix Matrix::div(double k)
 {
   Matrix res(width, height);
 
-  for (int i = 0; i < height; i++) {
-    for (int j = 0; j < width; j++) {
-      res[i][j] = (*this)[i][j] / k;
-    }
-  }
+  matrix_div<<<NUM_BLOCKS, THREADS_PER_BLOCK>>>(*this, res, k);
+  cudaDeviceSynchronize();
   
   return res;
 }
 
+__global__
+void matrix_exp(Matrix src, Matrix dest)
+{
+  int width = src.get_width();
+  int height = src.get_height();
+  int index = blockIdx.x * blockDim.x + threadIdx.x;
+  int stride = blockDim.x * gridDim.x;
+  
+  for (; index < width * height; index += stride) {
+    dest.m[index] = std::exp(src.m[index]);
+  }
+}
 
 Matrix Matrix::exp()
 {
   Matrix res(width, height);
 
-  for (int i = 0; i < height; i++) {
-    for (int j = 0; j < width; j++) {
-      res[i][j] = std::exp((*this)[i][j]);
-    }
-  }
+  matrix_exp<<<NUM_BLOCKS, THREADS_PER_BLOCK>>>(*this, res);
+  cudaDeviceSynchronize();
   
   return res;
 }
 
+__global__
+void matrix_neg(Matrix src, Matrix dest)
+{
+  int width = src.get_width();
+  int height = src.get_height();
+  int index = blockIdx.x * blockDim.x + threadIdx.x;
+  int stride = blockDim.x * gridDim.x;
+  
+  for (; index < width * height; index += stride) {
+    dest.m[index] = -src.m[index];
+  }
+}
 
 Matrix Matrix::neg() {
   Matrix res(width, height);
 
-  for (int i = 0; i < height; i++) {
-    for (int j = 0; j < width; j++) {
-      res[i][j] = -(*this)[i][j];
-    }
-  }
+  matrix_neg<<<NUM_BLOCKS, THREADS_PER_BLOCK>>>(*this, res);
+  cudaDeviceSynchronize();
   
   return res;
 }
-
 
 double Matrix::sum() {
   double res = 0;
@@ -247,45 +292,62 @@ Matrix Matrix::convolve(Matrix kernel) {
   assert(kernel_width == kernel_height);
   assert(kernel_width % 2 == 1);
 
-  matrix_convolve<<<100, 512>>>(*this, res, kernel, width, height, kernel_width, kernel_height);
+  matrix_convolve<<<NUM_BLOCKS, THREADS_PER_BLOCK>>>(*this, res, kernel, width, height, kernel_width, kernel_height);
   cudaDeviceSynchronize();
-
 
   return res;
 }
 
+__global__
+void matrix_hypot(Matrix src, Matrix dest, Matrix other)
+{
+  int width = src.get_width();
+  int height = src.get_height();
+  int index = blockIdx.x * blockDim.x + threadIdx.x;
+  int stride = blockDim.x * gridDim.x;
+  
+  for (; index < width * height; index += stride) {
+    double val1 = src.m[index];
+    double val2 = other.m[index];
+    double r = sqrt(val1 * val1 + val2 * val2);
+
+    dest.m[index] = r;
+  }
+}
 
 Matrix Matrix::hypot(Matrix other)
 {
   Matrix res(width, height);
 
-  for (int i = 0; i < height; i++) {
-    for (int j = 0; j < width; j++) {
-      double val1 = (*this)[i][j];
-      double val2 = other[i][j];
-      double r = sqrt(val1 * val1 + val2 * val2);
-
-      res[i][j] = r;
-    }
-  }
-
+  matrix_hypot<<<NUM_BLOCKS, THREADS_PER_BLOCK>>>(*this, res, other);
+  cudaDeviceSynchronize();
+  
   return res;
 }
 
+__global__
+void matrix_arctan2(Matrix src, Matrix dest, Matrix other)
+{
+  int width = src.get_width();
+  int height = src.get_height();
+  int index = blockIdx.x * blockDim.x + threadIdx.x;
+  int stride = blockDim.x * gridDim.x;
+  
+  for (; index < width * height; index += stride) {
+    double val1 = src.m[index];
+    double val2 = other.m[index];
+    double r = atan(val1 / val2);
+
+    dest.m[index] = r;
+  }
+}
 
 Matrix Matrix::arctan2(Matrix other)
 {
   Matrix res(width, height);
 
-  for (int i = 0; i < height; i++) {
-    for (int j = 0; j < width; j++) {
-      double val1 = (*this)[i][j];
-      double val2 = other[i][j];
-      double r = atan(val1 / val2);
-
-      res[i][j] = r;
-    }
-  }
-
+  matrix_arctan2<<<NUM_BLOCKS, THREADS_PER_BLOCK>>>(*this, res, other);
+  cudaDeviceSynchronize();
+  
   return res;
 }

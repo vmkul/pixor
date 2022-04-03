@@ -14,11 +14,12 @@ public:
 };
 
 class Matrix {
-  double *m;
   int width;
   int height;
 
 public:
+  double *m;
+
   Matrix(int width, int height);
   Matrix(std::vector<std::vector<double>> matrix);
   int get_width();
@@ -26,8 +27,8 @@ public:
   Row operator[](int index);
   Matrix power(int exponent);
   Matrix add(Matrix other);
-  Matrix mult(float k);
-  Matrix div(float k);
+  Matrix mult(double k);
+  Matrix div(double k);
   Matrix exp();
   Matrix neg();
   Matrix convolve(Matrix kernel);
