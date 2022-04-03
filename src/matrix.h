@@ -14,11 +14,10 @@ public:
 };
 
 class Matrix {
-  int width;
-  int height;
-
 public:
   double *m;
+  int width;
+  int height;
 
   Matrix(int width, int height);
   Matrix(std::vector<std::vector<double>> matrix);
