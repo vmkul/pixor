@@ -158,17 +158,15 @@ void cuda_threshold(Pixor::Matrix src, Pixor::Matrix res, int weak, int strong, 
   }
 }
 
-Pixor::Matrix threshold(Pixor::Matrix &m, double low_threshold_ratio = 0.05, double high_threshold_ratio = 0.09)
+Pixor::Matrix threshold(Pixor::Matrix &m, double low_threshold_ratio = 0.05, double high_threshold_ratio = 0.09, int weak_pixel = 25, int strong_pixel = 255)
 {
   auto high_threshold = m.max() * high_threshold_ratio;
   auto low_threshold = high_threshold * low_threshold_ratio;
   int width = m.get_width();
   int height = m.get_height();
   Pixor::Matrix res(width, height);
-  int weak = 25;
-  int strong = 255;
 
-  cuda_threshold<<<NUM_BLOCKS, THREADS_PER_BLOCK>>>(m, res, weak, strong, low_threshold, high_threshold);
+  cuda_threshold<<<NUM_BLOCKS, THREADS_PER_BLOCK>>>(m, res, weak_pixel, strong_pixel, low_threshold, high_threshold);
 
   return res;
 }
@@ -216,14 +214,14 @@ Pixor::Matrix hysteresis(Pixor::Matrix &m, int weak = 25, int strong = 255)
   return m;
 }
 
-Pixor::Matrix canny_edge_detector(Pixor::Matrix &m)
+Pixor::Matrix canny_edge_detector(Pixor::Matrix &m, double sigma, int kernel_size, double low_threshold, double high_threshold, int weak_pixel)
 {
-  auto res = m.convolve(gaussian_kernel(5));
+  auto res = m.convolve(gaussian_kernel(kernel_size, sigma));
   Pixor::Matrix theta(0, 0);
   res = sobel_filter(res, theta);
   res = non_max_suppression(res, theta);
-  res = threshold(res);
-  res = hysteresis(res);
+  res = threshold(res, low_threshold, high_threshold, weak_pixel);
+  res = hysteresis(res, weak_pixel);
   
   return res;
 }

@@ -20,7 +20,7 @@ ImageArea::ImageArea(std::shared_ptr<Pixor::Image> &image) :
   auto m = *drawing_context.get_matrix();
 
   auto start = std::chrono::steady_clock::now();
-  auto canny_m = canny_edge_detector(m);
+  auto canny_m = canny_edge_detector(m, 1.4, 5, 0.09, 0.17, 100);
   auto end = std::chrono::steady_clock::now();
 
   dbgln("Canny duration: %dms", std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count());
