@@ -112,7 +112,7 @@ Pixor::Matrix<double> non_max_suppression(Pixor::Matrix<double> &m, Pixor::Matri
   return res;
 }
 
-Pixor::Matrix<double> threshold(Pixor::Matrix<double> &m, double low_threshold_ratio = 0.05, double high_threshold_ratio = 0.09)
+Pixor::Matrix<double> threshold(Pixor::Matrix<double> &m, double low_threshold_ratio = 0.03, double high_threshold_ratio = 0.12)
 {
   auto high_threshold = m.max() * high_threshold_ratio;
   auto low_threshold = high_threshold * low_threshold_ratio;

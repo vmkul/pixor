@@ -6,15 +6,25 @@
 #include <stdio.h>
 #include "image_area.h"
 #include "debug.h"
+#include "canny.h"
 
 ImageArea::ImageArea(std::shared_ptr<Pixor::Image> &image) :
-  drawing_context(image->get_image_bitmap_with_alpha(), image->get_width(), image->get_height())
+  drawing_context(image->get_image_bitmap_greyscale(), image->get_width(), image->get_height())
 {
   set_events(Gdk::BUTTON_MOTION_MASK|Gdk::BUTTON_PRESS_MASK|Gdk::BUTTON_RELEASE_MASK);
   signal_motion_notify_event().connect(sigc::mem_fun(*this, &ImageArea::on_mouse_motion));
   if (!image) return;
-
   this->image = image;
+
+  image_bitmap = drawing_context.get_target_bitmap();
+  auto m = *drawing_context.get_matrix();
+
+  auto start = std::chrono::steady_clock::now();
+  auto canny_m = canny_edge_detector(m);
+  auto end = std::chrono::steady_clock::now();
+
+  dbgln("Canny duration: %dms", std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count());
+  drawing_context.set_matrix(canny_m);
   image_bitmap = drawing_context.get_target_bitmap();
   saved_bitmap = image_bitmap.get();
 }
