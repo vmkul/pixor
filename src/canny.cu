@@ -135,6 +135,7 @@ Pixor::Matrix non_max_suppression(Pixor::Matrix &m, Pixor::Matrix &theta)
   auto angle = theta.mult(180).div(M_PI);
   normalize_angle<<<NUM_BLOCKS, THREADS_PER_BLOCK>>>(angle);
   cuda_non_max_suppression<<<NUM_BLOCKS, THREADS_PER_BLOCK>>>(angle, m, res);
+  cudaDeviceSynchronize();
 
   return res;
 }
@@ -167,6 +168,7 @@ Pixor::Matrix threshold(Pixor::Matrix &m, double low_threshold_ratio = 0.05, dou
   Pixor::Matrix res(width, height);
 
   cuda_threshold<<<NUM_BLOCKS, THREADS_PER_BLOCK>>>(m, res, weak_pixel, strong_pixel, low_threshold, high_threshold);
+  cudaDeviceSynchronize();
 
   return res;
 }
@@ -210,6 +212,7 @@ Pixor::Matrix hysteresis(Pixor::Matrix &m, int weak = 25, int strong = 255)
   int height = m.get_height();
 
   cuda_hysteresis<<<NUM_BLOCKS, THREADS_PER_BLOCK>>>(m, weak, strong);
+  cudaDeviceSynchronize();
 
   return m;
 }
