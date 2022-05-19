@@ -6,8 +6,8 @@
 
 using namespace Pixor;
 
-const int NUM_BLOCKS = 100;
-const int THREADS_PER_BLOCK = 512;
+const int NUM_BLOCKS = 256;
+const int THREADS_PER_BLOCK = 750;
 
 // Try to mutate current matrix instead of returning new ones
 // and calling cudaMallocManaged too many times.
@@ -33,12 +33,6 @@ Matrix::Matrix(int width, int height) :
   height(height)
 {
   cudaMallocManaged(&m, width * height * sizeof(double));
-
-  for (int i = 0; i < height; i++) {
-    for (int j = 0; j < width; j++) {
-      (*this)[i][j] = 0;
-    }
-  }
 }
 
 
