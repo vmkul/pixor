@@ -3,8 +3,8 @@
 #include <cassert>
 #include <math.h>
 
-const int NUM_BLOCKS = 100;
-const int THREADS_PER_BLOCK = 512;
+const int NUM_BLOCKS = 256;
+const int THREADS_PER_BLOCK = 750;
 
 Pixor::Matrix x_mgrid(int val)
 {
@@ -220,11 +220,17 @@ Pixor::Matrix hysteresis(Pixor::Matrix &m, int weak = 25, int strong = 255)
 Pixor::Matrix canny_edge_detector(Pixor::Matrix &m, double sigma, int kernel_size, double low_threshold, double high_threshold, int weak_pixel)
 {
   auto res = m.convolve(gaussian_kernel(kernel_size, sigma));
-  Pixor::Matrix theta(0, 0);
+  Pixor::Matrix theta(1, 1);
   res = sobel_filter(res, theta);
   res = non_max_suppression(res, theta);
   res = threshold(res, low_threshold, high_threshold, weak_pixel);
   res = hysteresis(res, weak_pixel);
-  
+
+  int err = cudaGetLastError();
+  if (err != 0) {
+    dbgln("CUDA ERROR!: %d", err);
+    return Pixor::Matrix(0, 0);
+  }
+
   return res;
 }
