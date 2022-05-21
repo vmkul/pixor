@@ -1,2 +1,2 @@
 # pixor
-Ukrainian national image viewer and editor
+Parallel processing course work
